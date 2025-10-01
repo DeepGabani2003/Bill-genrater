@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jewelry Bill Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Times New Roman', serif;
+      background: linear-gradient(135deg, #f9f9f9, #f1f1f1);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 2px solid #d4af37;
+    }
+    h2 {
+      text-align: center;
+      color: #b8860b;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin: 10px 0 5px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background: #d4af37;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #b8860b;
+    }
+    .note {
+      text-align: center;
+      font-size: 13px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      color: #555;
+    }
+    .bill-preview {
+      display: none;
+      margin-top: 25px;
+      padding: 20px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+    .bill-preview h3 {
+      text-align: center;
+      text-decoration: underline;
+      margin-bottom: 15px;
+    }
+    .bill-preview table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .bill-preview th, .bill-preview td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: left;
+    }
+    .download-btn {
+      display: none;
+      background: #228b22;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Jewelry Bill Generator</h2>
+
+    <label>Bill Number</label>
+    <input type="text" id="billNo" placeholder="Enter Bill Number">
+
+    <label>Select Metal KT</label>
+    <select id="kt">
+      <option value="10">10K</option>
+      <option value="14">14K</option>
+      <option value="18">18K</option>
+      <option value="22">22K</option>
+    </select>
+
+    <label>Gross Weight (g)</label>
+    <input type="number" id="grossWt" placeholder="Enter Gross Weight">
+
+    <label>Diamond CTW</label>
+    <input type="number" id="diamondCtw" placeholder="Enter Diamond CTW">
+
+    <p class="note">Click below to generate bill preview</p>
+    <button onclick="generateBill()">Generate Bill Preview</button>
+
+    <!-- Bill Preview -->
+    <div class="bill-preview" id="billPreview">
+      <h3>Kirtijewels - Jewelry Bill</h3>
+      <p><b>Bill No:</b> <span id="pBillNo"></span></p>
+      <p><b>Date:</b> <span id="pDate"></span></p>
+      <table>
+        <tr><th>Gross Weight</th><td id="pGross"></td></tr>
+        <tr><th>Metal KT</th><td id="pKt"></td></tr>
+        <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
+        <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
+        <tr><th>Net Weight</th><td id="pNet"></td></tr>
+        <tr><th>Fine</th><td id="pFine"></td></tr>
+        <tr><th>Labour</th><td id="pLabour"></td></tr>
+      </table>
+      <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>Kirtijewels</b>!</p>
+    </div>
+
+    <!-- Download Button -->
+    <button class="download-btn" id="downloadBtn" onclick="downloadPDF()">Download Bill PDF</button>
+  </div>
+
+  <script>
+    let billData = {};
+
+    function generateBill() {
+      let billNo = document.getElementById("billNo").value;
+      let kt = document.getElementById("kt").value;
+      let grossWt = parseFloat(document.getElementById("grossWt").value);
+      let diamondCtw = parseFloat(document.getElementById("diamondCtw").value);
+
+      if (isNaN(grossWt) || isNaN(diamondCtw) || !billNo) {
+        alert("⚠️ Please fill all fields correctly!");
+        return;
+      }
+
+      // Purity values
+      let purity = {10: 0.416, 14: 0.595, 18: 0.760, 22: 0.925};
+      let selectedPurity = purity[kt];
+
+      // Calculations (exact 3 decimal places for display)
+      let diamondWt = diamondCtw / 5;
+      let netWt = grossWt - diamondWt;
+      let fine = netWt * selectedPurity;
+      let labour = netWt * 800;
+
+      billData = {
+        billNo, kt, grossWt, diamondCtw, diamondWt, netWt, fine, labour
+      };
+
+      // Show preview
+      document.getElementById("billPreview").style.display = "block";
+      document.getElementById("downloadBtn").style.display = "block";
+
+      document.getElementById("pBillNo").innerText = billNo;
+      document.getElementById("pDate").innerText = new Date().toLocaleDateString();
+      document.getElementById("pGross").innerText = grossWt.toFixed(3);
+      document.getElementById("pKt").innerText = kt + "K";
+      document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
+      document.getElementById("pDwt").innerText = diamondWt.toFixed(3);
+      document.getElementById("pNet").innerText = netWt.toFixed(3);
+      document.getElementById("pFine").innerText = fine.toFixed(3);
+      document.getElementById("pLabour").innerText = "₹" + labour.toFixed(3);
+    }
+
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(20);
+      doc.text("Kirtijewels", 105, 20, null, null, "center");
+      doc.setFontSize(14);
+      doc.text("Jewelry Bill", 105, 28, null, null, "center");
+      doc.setLineWidth(0.5);
+      doc.line(20, 32, 190, 32);
+
+      doc.setFont("times", "normal");
+      doc.setFontSize(12);
+      doc.text("Bill No: " + billData.billNo, 20, 42);
+      doc.text("Date: " + new Date().toLocaleDateString(), 150, 42);
+
+      let y = 55;
+      doc.text("Gross Weight: " + billData.grossWt.toFixed(3), 20, y); y += 10;
+      doc.text("Metal KT: " + billData.kt + "K", 20, y); y += 10;
+      doc.text("Diamond CTW: " + billData.diamondCtw.toFixed(3), 20, y); y += 10;
+      doc.text("Diamond Weight: " + billData.diamondWt.toFixed(3), 20, y); y += 10;
+      doc.text("Net Weight: " + billData.netWt.toFixed(3), 20, y); y += 10;
+      doc.text("Fine: " + billData.fine.toFixed(3), 20, y); y += 10;
+      doc.text("Labour Charges: ₹" + billData.labour.toFixed(3), 20, y);
+
+      doc.text("Thank you for shopping with Kirtijewels!", 105, y + 20, null, null, "center");
+      doc.line(20, y + 25, 190, y + 25);
+      doc.text("Authorized Signatory", 150, y + 35);
+
+      doc.save("Jewelry_Bill_" + billData.billNo + ".pdf");
+    }
+  </script>
+
+</body>
+</html>
