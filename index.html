@@ -65,14 +65,31 @@
       border: 2px solid #000;
       background: #fff;
     }
-    .bill-preview h3 {
-      text-align: center;
-      text-decoration: underline;
-      margin-bottom: 15px;
+    .bill-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bill-preview-header-left {
+      display: flex;
+      align-items: center;
+    }
+    .bill-preview-header-left img.logo {
+      height: 60px;
+      margin-right: 10px;
+    }
+    .bill-preview-header-left .company-name {
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .bill-preview-header-right {
+      text-align: right;
+      font-size: 14px;
     }
     .bill-preview table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 15px;
     }
     .bill-preview th, .bill-preview td {
       border: 1px solid #000;
@@ -83,6 +100,12 @@
       display: none;
       background: #228b22;
       margin-top: 20px;
+    }
+    .preview-img {
+      max-width: 150px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -103,37 +126,67 @@
     </select>
 
     <label>Gross Weight (g)</label>
-    <input type="number" id="grossWt" placeholder="Enter Gross Weight">
+    <input type="number" id="grossWt" step="0.001" placeholder="Enter Gross Weight">
 
     <label>Diamond CTW</label>
-    <input type="number" id="diamondCtw" placeholder="Enter Diamond CTW">
+    <input type="number" id="diamondCtw" step="0.001" placeholder="Enter Diamond CTW">
+
+    <label>Upload Product Image</label>
+    <input type="file" id="productImg" accept="image/*">
+    <img id="previewImg" class="preview-img" style="display:none;">
 
     <p class="note">Click below to generate bill preview</p>
     <button onclick="generateBill()">Generate Bill Preview</button>
 
     <!-- Bill Preview -->
     <div class="bill-preview" id="billPreview">
-      <h3>Kirtijewels - Jewelry Bill</h3>
-      <p><b>Bill No:</b> <span id="pBillNo"></span></p>
-      <p><b>Date:</b> <span id="pDate"></span></p>
+      <div class="bill-preview-header">
+        <div class="bill-preview-header-left">
+          <img src="https://i.ibb.co/QNqGSn5/sample-logo.png" alt="Logo" class="logo">
+          <span class="company-name">Kaizen Group</span>
+        </div>
+        <div class="bill-preview-header-right">
+          <p><b>Bill No:</b> <span id="pBillNo"></span></p>
+          <p><b>Date:</b> <span id="pDate"></span></p>
+        </div>
+      </div>
+      <hr>
+
       <table>
-        <tr><th>Gross Weight</th><td id="pGross"></td></tr>
         <tr><th>Metal KT</th><td id="pKt"></td></tr>
+        <tr><th>Gross Weight</th><td id="pGross"></td></tr>
         <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
         <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
         <tr><th>Net Weight</th><td id="pNet"></td></tr>
         <tr><th>Fine</th><td id="pFine"></td></tr>
         <tr><th>Labour</th><td id="pLabour"></td></tr>
       </table>
-      <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>Kirtijewels</b>!</p>
+
+      <div style="text-align:center; margin-top:15px;">
+        <img id="billImg" class="preview-img">
+      </div>
+      <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>Kaizen Group</b>!</p>
     </div>
 
-    <!-- Download Button -->
     <button class="download-btn" id="downloadBtn" onclick="downloadPDF()">Download Bill PDF</button>
   </div>
 
   <script>
     let billData = {};
+    let uploadedImg = null;
+
+    document.getElementById("productImg").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          uploadedImg = evt.target.result;
+          document.getElementById("previewImg").src = uploadedImg;
+          document.getElementById("previewImg").style.display = "block";
+        }
+        reader.readAsDataURL(file);
+      }
+    });
 
     function generateBill() {
       let billNo = document.getElementById("billNo").value;
@@ -146,64 +199,74 @@
         return;
       }
 
-      // Purity values
       let purity = {10: 0.416, 14: 0.595, 18: 0.760, 22: 0.925};
       let selectedPurity = purity[kt];
 
-      // Calculations (exact 3 decimal places for display)
       let diamondWt = diamondCtw / 5;
       let netWt = grossWt - diamondWt;
       let fine = netWt * selectedPurity;
       let labour = netWt * 800;
 
-      billData = {
-        billNo, kt, grossWt, diamondCtw, diamondWt, netWt, fine, labour
-      };
+      billData = { billNo, kt, grossWt, diamondCtw, diamondWt, netWt, fine, labour, uploadedImg };
 
-      // Show preview
       document.getElementById("billPreview").style.display = "block";
       document.getElementById("downloadBtn").style.display = "block";
 
       document.getElementById("pBillNo").innerText = billNo;
       document.getElementById("pDate").innerText = new Date().toLocaleDateString();
-      document.getElementById("pGross").innerText = grossWt.toFixed(3);
       document.getElementById("pKt").innerText = kt + "K";
+      document.getElementById("pGross").innerText = grossWt.toFixed(3);
       document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
       document.getElementById("pDwt").innerText = diamondWt.toFixed(3);
       document.getElementById("pNet").innerText = netWt.toFixed(3);
       document.getElementById("pFine").innerText = fine.toFixed(3);
       document.getElementById("pLabour").innerText = "₹" + labour.toFixed(3);
+
+      if (uploadedImg) {
+        document.getElementById("billImg").src = uploadedImg;
+      }
     }
 
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
+      // Header
+      let logo = "https://i.ibb.co/QNqGSn5/sample-logo.png";
+      doc.addImage(logo, "PNG", 20, 10, 25, 25); // logo left
       doc.setFont("times", "bold");
-      doc.setFontSize(20);
-      doc.text("Kirtijewels", 105, 20, null, null, "center");
+      doc.setFontSize(32);
+      doc.text("Kaizen Group", 50, 25); // beside logo
+      doc.setFont("times", "italic");
       doc.setFontSize(14);
-      doc.text("Jewelry Bill", 105, 28, null, null, "center");
-      doc.setLineWidth(0.5);
-      doc.line(20, 32, 190, 32);
+      doc.text("Jewelry Bill", 50, 35);
+      doc.line(20, 40, 190, 40);
 
+      // Bill No & Date right same line as logo
       doc.setFont("times", "normal");
       doc.setFontSize(12);
-      doc.text("Bill No: " + billData.billNo, 20, 42);
-      doc.text("Date: " + new Date().toLocaleDateString(), 150, 42);
+      doc.text("Bill No: " + billData.billNo, 150, 20);
+      doc.text("Date: " + new Date().toLocaleDateString(), 150, 28);
 
-      let y = 55;
-      doc.text("Gross Weight: " + billData.grossWt.toFixed(3), 20, y); y += 10;
-      doc.text("Metal KT: " + billData.kt + "K", 20, y); y += 10;
-      doc.text("Diamond CTW: " + billData.diamondCtw.toFixed(3), 20, y); y += 10;
-      doc.text("Diamond Weight: " + billData.diamondWt.toFixed(3), 20, y); y += 10;
-      doc.text("Net Weight: " + billData.netWt.toFixed(3), 20, y); y += 10;
-      doc.text("Fine: " + billData.fine.toFixed(3), 20, y); y += 10;
-      doc.text("Labour Charges: ₹" + billData.labour.toFixed(3), 20, y);
+      let y = 50;
+      doc.text("Metal KT: " + billData.kt + "K", 20, y); y += 8;
+      doc.text("Gross Weight: " + billData.grossWt.toFixed(3), 20, y); y += 8;
+      doc.text("Diamond CTW: " + billData.diamondCtw.toFixed(3), 20, y); y += 8;
+      doc.text("Diamond Weight: " + billData.diamondWt.toFixed(3), 20, y); y += 8;
+      doc.text("Net Weight: " + billData.netWt.toFixed(3), 20, y); y += 8;
+      doc.text("Fine: " + billData.fine.toFixed(3), 20, y); y += 8;
+      doc.text("Labour Charges: ₹" + billData.labour.toFixed(3), 20, y); y += 12;
 
-      doc.text("Thank you for shopping with Kirtijewels!", 105, y + 20, null, null, "center");
+      if (billData.uploadedImg) {
+        doc.addImage(billData.uploadedImg, "JPEG", 140, 50, 50, 50);
+        y += 60;
+      }
+
+      // Footer
       doc.line(20, y + 25, 190, y + 25);
       doc.text("Authorized Signatory", 150, y + 35);
+      doc.setFontSize(10);
+      doc.text("Thank you for shopping with Kaizen Group!", 105, y + 50, null, null, "center");
 
       doc.save("Jewelry_Bill_" + billData.billNo + ".pdf");
     }
