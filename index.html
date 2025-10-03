@@ -142,7 +142,7 @@
     <div class="bill-preview" id="billPreview">
       <div class="bill-preview-header">
         <div class="bill-preview-header-left">
-          <img src="logo.jpg" alt="Logo" class="logo">
+          <img src="https://i.ibb.co/QNqGSn5/sample-logo.png" alt="Logo" class="logo">
           <span class="company-name">Kaizen Group</span>
         </div>
         <div class="bill-preview-header-right">
@@ -174,6 +174,12 @@
   <script>
     let billData = {};
     let uploadedImg = null;
+
+    function formatDateDDMMYYYY(date) {
+      return String(date.getDate()).padStart(2,'0') + '/' +
+             String(date.getMonth()+1).padStart(2,'0') + '/' +
+             date.getFullYear();
+    }
 
     document.getElementById("productImg").addEventListener("change", function(e) {
       const file = e.target.files[0];
@@ -207,13 +213,16 @@
       let fine = netWt * selectedPurity;
       let labour = netWt * 800;
 
-      billData = { billNo, kt, grossWt, diamondCtw, diamondWt, netWt, fine, labour, uploadedImg };
+      let today = new Date();
+      let formattedDate = formatDateDDMMYYYY(today);
+
+      billData = { billNo, kt, grossWt, diamondCtw, diamondWt, netWt, fine, labour, uploadedImg, formattedDate };
 
       document.getElementById("billPreview").style.display = "block";
       document.getElementById("downloadBtn").style.display = "block";
 
       document.getElementById("pBillNo").innerText = billNo;
-      document.getElementById("pDate").innerText = new Date().toLocaleDateString();
+      document.getElementById("pDate").innerText = formattedDate;
       document.getElementById("pKt").innerText = kt + "K";
       document.getElementById("pGross").innerText = grossWt.toFixed(3);
       document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
@@ -246,7 +255,7 @@
       doc.setFont("times", "normal");
       doc.setFontSize(12);
       doc.text("Bill No: " + billData.billNo, 150, 20);
-      doc.text("Date: " + new Date().toLocaleDateString(), 150, 28);
+      doc.text("Date: " + billData.formattedDate, 150, 28);
 
       let y = 50;
       doc.text("Metal KT: " + billData.kt + "K", 20, y); y += 8;
@@ -274,5 +283,3 @@
 
 </body>
 </html>
-
-
