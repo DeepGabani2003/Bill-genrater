@@ -75,7 +75,7 @@
 <div class="bill-preview" id="billPreview">
   <div class="bill-header">
     <div class="bill-header-left">
-      <img src="logo.jpg" alt="Logo" class="logo">
+      <img src="logo.JPG" alt="Logo" class="logo">
       <div class="company-name">KAIZEN GROUP</div>
     </div>
     <div class="bill-header-right">
@@ -195,7 +195,13 @@ function updateSummaryTable(){
   const tbody = document.querySelector("#summaryTable tbody");
   tbody.innerHTML = "";
 
+  let totalFine = 0;
+  let totalLabour = 0;
+
   bills.forEach((b,index)=>{
+    totalFine += b.fine;
+    totalLabour += b.labour;
+
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${b.billNo}</td>
                     <td>${b.date}</td>
@@ -212,6 +218,16 @@ function updateSummaryTable(){
                     </td>`;
     tbody.appendChild(tr);
   });
+
+  if(bills.length > 0){
+    const trTotal = document.createElement("tr");
+    trTotal.style.fontWeight = "bold";
+    trTotal.innerHTML = `<td colspan="7" style="text-align:right;">Total:</td>
+                         <td>${totalFine.toFixed(3)}</td>
+                         <td>Rs ${totalLabour.toFixed(3)}</td>
+                         <td></td>`;
+    tbody.appendChild(trTotal);
+  }
 
   document.getElementById("summaryPreview").style.display = bills.length ? "block":"none";
 }
@@ -347,17 +363,21 @@ function downloadSummaryPDF(){
   const doc = new jsPDF();
   doc.text("KAIZEN GROUP Bill Summary",20,20);
 
-  // Prepare data without Action column
   const columns = ["Bill No","Date","KT","Gross","CTW","DWT","Net","Fine","Labour"];
   const rows = bills.map(b => [
     b.billNo, b.date, b.kt+"K", b.gross.toFixed(3), b.ctw.toFixed(3),
     b.dwt.toFixed(3), b.net.toFixed(3), b.fine.toFixed(3), "Rs "+b.labour.toFixed(3)
   ]);
 
+  doc.autoTable({ head:[columns], body:rows, startY:30 });
+
+  // Add totals
+  let totalFine = bills.reduce((acc,b)=>acc+b.fine,0);
+  let totalLabour = bills.reduce((acc,b)=>acc+b.labour,0);
   doc.autoTable({
-    head:[columns],
-    body:rows,
-    startY:30
+    startY: doc.lastAutoTable.finalY + 2,
+    head:[["Total","","","","","","",totalFine.toFixed(3),"Rs "+totalLabour.toFixed(3)]],
+    theme:"plain"
   });
 
   doc.save("Bill_Summary.pdf");
@@ -365,8 +385,6 @@ function downloadSummaryPDF(){
 
 function downloadSummaryExcel(){
   const wb = XLSX.utils.book_new();
-
-  // Only include bill data, exclude Action
   const dataForExcel = bills.map(b => ({
     "Bill No": b.billNo,
     "Date": b.date,
@@ -379,6 +397,13 @@ function downloadSummaryExcel(){
     "Labour": b.labour.toFixed(3)
   }));
 
+  // Add totals row
+  const totalFine = bills.reduce((acc,b)=>acc+b.fine,0);
+  const totalLabour = bills.reduce((acc,b)=>acc+b.labour,0);
+  dataForExcel.push({
+    "Bill No":"", "Date":"", "KT":"", "Gross":"", "CTW":"", "DWT":"", "Net":"Total", "Fine":totalFine.toFixed(3), "Labour":totalLabour.toFixed(3)
+  });
+
   const ws = XLSX.utils.json_to_sheet(dataForExcel);
   XLSX.utils.book_append_sheet(wb, ws, "Summary");
   XLSX.writeFile(wb,"Bill_Summary.xlsx");
@@ -386,5 +411,3 @@ function downloadSummaryExcel(){
 </script>
 </body>
 </html>
-
-
