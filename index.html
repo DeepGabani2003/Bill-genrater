@@ -1,286 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jewelry Bill Generator</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      font-family: 'Times New Roman', serif;
-      background: linear-gradient(135deg, #f9f9f9, #f1f1f1);
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      border: 2px solid #d4af37;
-    }
-    h2 {
-      text-align: center;
-      color: #b8860b;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      font-weight: bold;
-      margin: 10px 0 5px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background: #d4af37;
-      color: #fff;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #b8860b;
-    }
-    .note {
-      text-align: center;
-      font-size: 13px;
-      margin-top: -10px;
-      margin-bottom: 15px;
-      color: #555;
-    }
-    .bill-preview {
-      display: none;
-      margin-top: 25px;
-      padding: 20px;
-      border: 2px solid #000;
-      background: #fff;
-    }
-    .bill-preview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .bill-preview-header-left {
-      display: flex;
-      align-items: center;
-    }
-    .bill-preview-header-left img.logo {
-      height: 60px;
-      margin-right: 10px;
-    }
-    .bill-preview-header-left .company-name {
-      font-size: 32px;
-      font-weight: bold;
-    }
-    .bill-preview-header-right {
-      text-align: right;
-      font-size: 14px;
-    }
-    .bill-preview table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    .bill-preview th, .bill-preview td {
-      border: 1px solid #000;
-      padding: 8px;
-      text-align: left;
-    }
-    .download-btn {
-      display: none;
-      background: #228b22;
-      margin-top: 20px;
-    }
-    .preview-img {
-      max-width: 150px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jewelry Bill & Summary</title>
+
+<!-- jsPDF & AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<!-- SheetJS for Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+  body {
+    font-family: 'Times New Roman', serif;
+    background: linear-gradient(135deg,#f9f9f9,#f1f1f1);
+    margin:0; padding:20px;
+  }
+  .container { max-width:700px; margin:auto; background:#fff; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); border:2px solid #d4af37;}
+  h2 { text-align:center; color:#b8860b; text-transform:uppercase; margin-bottom:20px; }
+  label { display:block; font-weight:bold; margin:10px 0 5px; }
+  input, select, button { width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:6px; font-size:16px; }
+  button { background:#d4af37; color:#fff; font-weight:bold; border:none; cursor:pointer; transition:0.3s; }
+  button:hover { background:#b8860b; }
+  .note { text-align:center; font-size:13px; margin-top:-10px; margin-bottom:15px; color:#555; }
+  .bill-preview, .summary-preview { display:none; margin-top:25px; padding:20px; border:2px solid #000; background:#fff; }
+  .bill-header { display:flex; justify-content:space-between; align-items:center; }
+  .bill-header-left { display:flex; align-items:center; }
+  .bill-header-left img.logo { height:60px; margin-right:10px; }
+  .bill-header-left .company-name { font-size:28px; font-weight:bold; }
+  .bill-header-right { text-align:right; font-size:14px; }
+  table { width:100%; border-collapse: collapse; margin-top:15px; }
+  th, td { border:1px solid #000; padding:8px; text-align:left; }
+  .preview-img { max-width:150px; margin-top:10px; border:1px solid #ccc; border-radius:6px; }
+  .action-btn { width:auto; display:inline-block; margin-right:10px; }
+  .delete-btn { background:#d9534f; margin-left:5px; }
+  .delete-btn:hover { background:#c9302c; }
+  .reset-btn { background:#5bc0de; margin-left:5px; }
+  .reset-btn:hover { background:#31b0d5; }
+  td span { cursor:pointer; font-size:18px; }
+</style>
 </head>
+
 <body>
+<div class="container">
+<h2>Jewelry Bill Generator</h2>
 
-  <div class="container">
-    <h2>Jewelry Bill Generator</h2>
+<label>Bill Number</label>
+<input type="text" id="billNo" placeholder="Enter Bill Number">
 
-    <label>Bill Number</label>
-    <input type="text" id="billNo" placeholder="Enter Bill Number">
+<label>Select Metal KT</label>
+<select id="kt">
+  <option value="10">10K</option>
+  <option value="14">14K</option>
+  <option value="18">18K</option>
+  <option value="22">22K</option>
+</select>
 
-    <label>Select Metal KT</label>
-    <select id="kt">
-      <option value="10">10K</option>
-      <option value="14">14K</option>
-      <option value="18">18K</option>
-      <option value="22">22K</option>
-    </select>
+<label>Gross Weight (g)</label>
+<input type="number" id="grossWt" step="0.001" placeholder="Enter Gross Weight">
 
-    <label>Gross Weight (g)</label>
-    <input type="number" id="grossWt" step="0.001" placeholder="Enter Gross Weight">
+<label>Diamond CTW</label>
+<input type="number" id="diamondCtw" step="0.001" placeholder="Enter Diamond CTW">
 
-    <label>Diamond CTW</label>
-    <input type="number" id="diamondCtw" step="0.001" placeholder="Enter Diamond CTW">
+<label>Upload Product Image</label>
+<input type="file" id="productImg" accept="image/*">
+<img id="previewImg" class="preview-img" style="display:none;">
 
-    <label>Upload Product Image</label>
-    <input type="file" id="productImg" accept="image/*">
-    <img id="previewImg" class="preview-img" style="display:none;">
+<p class="note">Click below to generate bill preview</p>
+<button class="action-btn" onclick="generateBill()">Generate Bill Preview</button>
 
-    <p class="note">Click below to generate bill preview</p>
-    <button onclick="generateBill()">Generate Bill Preview</button>
-
-    <!-- Bill Preview -->
-    <div class="bill-preview" id="billPreview">
-      <div class="bill-preview-header">
-        <div class="bill-preview-header-left">
-          <img src="logo.jpg" alt="Logo" class="logo">
-          <span class="company-name">Kaizen Group</span>
-        </div>
-        <div class="bill-preview-header-right">
-          <p><b>Bill No:</b> <span id="pBillNo"></span></p>
-          <p><b>Date:</b> <span id="pDate"></span></p>
-        </div>
-      </div>
-      <hr>
-
-      <table>
-        <tr><th>Metal KT</th><td id="pKt"></td></tr>
-        <tr><th>Gross Weight</th><td id="pGross"></td></tr>
-        <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
-        <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
-        <tr><th>Net Weight</th><td id="pNet"></td></tr>
-        <tr><th>Fine</th><td id="pFine"></td></tr>
-        <tr><th>Labour</th><td id="pLabour"></td></tr>
-      </table>
-
-      <div style="text-align:center; margin-top:15px;">
-        <img id="billImg" class="preview-img">
-      </div>
-      <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>Kaizen Group</b>!</p>
+<!-- Bill Preview -->
+<div class="bill-preview" id="billPreview">
+  <div class="bill-header">
+    <div class="bill-header-left">
+      <img src="logo.JPG" alt="Logo" class="logo">
+      <div class="company-name">KAIZEN GROUP</div>
     </div>
-
-    <button class="download-btn" id="downloadBtn" onclick="downloadPDF()">Download Bill PDF</button>
+    <div class="bill-header-right">
+      <p><b>Bill No:</b> <span id="pBillNo"></span></p>
+      <p><b>Date:</b> <span id="pDate"></span></p>
+      <p><b>GST:</b> </p>
+    </div>
   </div>
 
-  <script>
-    let billData = {};
-    let uploadedImg = null;
+  <table>
+    <tr><th>Metal KT</th><td id="pKt"></td></tr>
+    <tr><th>Gross Weight</th><td id="pGross"></td></tr>
+    <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
+    <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
+    <tr><th>Net Weight</th><td id="pNet"></td></tr>
+    <tr><th>Fine</th><td id="pFine"></td></tr>
+    <tr><th>Labour</th><td id="pLabour"></td></tr>
+  </table>
 
-    function formatDateDDMMYYYY(date) {
-      return String(date.getDate()).padStart(2,'0') + '/' +
-             String(date.getMonth()+1).padStart(2,'0') + '/' +
-             date.getFullYear();
+  <div style="text-align:center; margin-top:15px;">
+    <img id="billImg" class="preview-img">
+  </div>
+
+  <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>KAIZEN GROUP</b>!</p>
+  <button class="action-btn" onclick="printBill()">Print Bill</button>
+  <button class="action-btn" onclick="downloadBillPDF()">Download PDF</button>
+</div>
+
+<!-- Summary Preview -->
+<div class="summary-preview" id="summaryPreview">
+  <h3>Bill Summary</h3>
+  <table id="summaryTable">
+    <thead>
+      <tr>
+        <th>Bill No</th><th>Date</th><th>KT</th><th>Gross</th><th>CTW</th><th>DWT</th><th>Net</th><th>Fine</th><th>Labour</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div style="margin-top:10px;">
+    <button class="action-btn" onclick="printSummary()">Print Summary</button>
+    <button class="action-btn" onclick="downloadSummaryPDF()">Download Summary PDF</button>
+    <button class="action-btn" onclick="downloadSummaryExcel()">Download Summary Excel</button>
+    <button class="action-btn reset-btn" onclick="resetAll()">Reset All</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+let bills = [];
+
+window.onload = function(){
+  const stored = localStorage.getItem("bills");
+  if(stored){
+    bills = JSON.parse(stored);
+    updateSummaryTable();
+  }
+};
+
+let uploadedImg = null;
+document.getElementById("productImg").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = function(evt){
+      uploadedImg = evt.target.result;
+      document.getElementById("previewImg").src = uploadedImg;
+      document.getElementById("previewImg").style.display = "block";
     }
+    reader.readAsDataURL(file);
+  }
+});
 
-    document.getElementById("productImg").addEventListener("change", function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          uploadedImg = evt.target.result;
-          document.getElementById("previewImg").src = uploadedImg;
-          document.getElementById("previewImg").style.display = "block";
-        }
-        reader.readAsDataURL(file);
-      }
-    });
+function generateBill(){
+  let billNo = document.getElementById("billNo").value;
+  let kt = document.getElementById("kt").value;
+  let grossWt = parseFloat(document.getElementById("grossWt").value);
+  let diamondCtw = parseFloat(document.getElementById("diamondCtw").value);
 
-    function generateBill() {
-      let billNo = document.getElementById("billNo").value;
-      let kt = document.getElementById("kt").value;
-      let grossWt = parseFloat(document.getElementById("grossWt").value);
-      let diamondCtw = parseFloat(document.getElementById("diamondCtw").value);
+  if(isNaN(grossWt) || isNaN(diamondCtw) || !billNo){
+    alert("⚠️ Fill all fields correctly!");
+    return;
+  }
 
-      if (isNaN(grossWt) || isNaN(diamondCtw) || !billNo) {
-        alert("⚠️ Please fill all fields correctly!");
-        return;
-      }
+  let purity = {10:0.430, 14:0.595, 18:0.760, 22:0.925};
+  let selectedPurity = purity[kt];
+  let diamondWt = diamondCtw/5;
+  let netWt = grossWt - diamondWt;
+  let fine = netWt * selectedPurity;
+  let labour = Math.max(netWt*800,1500);
 
-      let purity = {10: 0.430, 14: 0.595, 18: 0.760, 22: 0.925};
-      let selectedPurity = purity[kt];
+  let today = new Date();
+  let dateStr = ("0"+today.getDate()).slice(-2) + "/" + ("0"+(today.getMonth()+1)).slice(-2) + "/" + today.getFullYear();
 
-      let diamondWt = diamondCtw / 5;
-      let netWt = grossWt - diamondWt;
-      let fine = netWt * selectedPurity;
-      let labour = netWt * 800;
+  const bill = { billNo, date:dateStr, kt, gross:grossWt, ctw:diamondCtw, dwt:diamondWt, net:netWt, fine, labour, img:uploadedImg };
+  bills.push(bill);
 
-      let today = new Date();
-      let formattedDate = formatDateDDMMYYYY(today);
+  localStorage.setItem("bills", JSON.stringify(bills));
 
-      billData = { billNo, kt, grossWt, diamondCtw, diamondWt, netWt, fine, labour, uploadedImg, formattedDate };
+  document.getElementById("billPreview").style.display = "block";
+  document.getElementById("pBillNo").innerText = billNo;
+  document.getElementById("pDate").innerText = dateStr;
+  document.getElementById("pKt").innerText = kt + "K";
+  document.getElementById("pGross").innerText = grossWt.toFixed(3);
+  document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
+  document.getElementById("pDwt").innerText = diamondWt.toFixed(3);
+  document.getElementById("pNet").innerText = netWt.toFixed(3);
+  document.getElementById("pFine").innerText = fine.toFixed(3);
+  document.getElementById("pLabour").innerText = "Rs "+labour.toFixed(3);
+  document.getElementById("billImg").src = uploadedImg;
 
-      document.getElementById("billPreview").style.display = "block";
-      document.getElementById("downloadBtn").style.display = "block";
+  updateSummaryTable();
+}
 
-      document.getElementById("pBillNo").innerText = billNo;
-      document.getElementById("pDate").innerText = formattedDate;
-      document.getElementById("pKt").innerText = kt + "K";
-      document.getElementById("pGross").innerText = grossWt.toFixed(3);
-      document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
-      document.getElementById("pDwt").innerText = diamondWt.toFixed(3);
-      document.getElementById("pNet").innerText = netWt.toFixed(3);
-      document.getElementById("pFine").innerText = fine.toFixed(3);
-      document.getElementById("pLabour").innerText = "₹" + labour.toFixed(3);
+function updateSummaryTable(){
+  const tbody = document.querySelector("#summaryTable tbody");
+  tbody.innerHTML = "";
 
-      if (uploadedImg) {
-        document.getElementById("billImg").src = uploadedImg;
-      }
-    }
+  bills.forEach((b,index)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${b.billNo}</td>
+                    <td>${b.date}</td>
+                    <td>${b.kt}K</td>
+                    <td>${b.gross.toFixed(3)}</td>
+                    <td>${b.ctw.toFixed(3)}</td>
+                    <td>${b.dwt.toFixed(3)}</td>
+                    <td>${b.net.toFixed(3)}</td>
+                    <td>${b.fine.toFixed(3)}</td>
+                    <td>Rs ${b.labour.toFixed(3)}</td>
+                    <td style="text-align:center;">
+                      <span style="color:#d9534f;" title="Delete" onclick="deleteBill(${index})">&#128465;</span>
+                      <span style="color:#5bc0de; margin-left:10px;" title="Print Bill" onclick="printIndividualBill(${index})">&#128438;</span>
+                    </td>`;
+    tbody.appendChild(tr);
+  });
 
-    function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+  document.getElementById("summaryPreview").style.display = bills.length ? "block":"none";
+}
 
-      // Header
-      let logo = "logo.jpg";
-      doc.addImage(logo, "PNG", 20, 10, 25, 25); // logo left
-      doc.setFont("times", "bold");
-      doc.setFontSize(32);
-      doc.text("Kaizen Group", 50, 25); // beside logo
-      doc.setFont("times", "italic");
-      doc.setFontSize(14);
-      doc.text("Jewelry Bill", 50, 35);
-      doc.line(20, 40, 190, 40);
+function deleteBill(index){
+  if(confirm("Are you sure to delete this bill?")){
+    bills.splice(index,1);
+    localStorage.setItem("bills", JSON.stringify(bills));
+    updateSummaryTable();
+  }
+}
 
-      // Bill No & Date right same line
-      doc.setFont("times", "normal");
-      doc.setFontSize(12);
-      doc.text("Bill No: " + billData.billNo, 150, 20);
-      doc.text("Date: " + billData.formattedDate, 150, 28);
+function resetAll(){
+  if(confirm("Are you sure to reset all bills?")){
+    bills = [];
+    localStorage.removeItem("bills");
+    updateSummaryTable();
+  }
+}
 
-      let y = 50;
-      doc.text("Metal KT: " + billData.kt + "K", 20, y); y += 8;
-      doc.text("Gross Weight: " + billData.grossWt.toFixed(3), 20, y); y += 8;
-      doc.text("Diamond CTW: " + billData.diamondCtw.toFixed(3), 20, y); y += 8;
-      doc.text("Diamond Weight: " + billData.diamondWt.toFixed(3), 20, y); y += 8;
-      doc.text("Net Weight: " + billData.netWt.toFixed(3), 20, y); y += 8;
-      doc.text("Fine: " + billData.fine.toFixed(3), 20, y); y += 8;
-      doc.text("Labour Charges: ₹" + billData.labour.toFixed(3), 20, y); y += 12;
+function printBill(){
+  const content = document.getElementById("billPreview").innerHTML;
+  const w = window.open();
+  w.document.write(`<html><head><title>Print Bill</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:20px;}
+    table{width:100%;border-collapse:collapse;margin-top:15px;}
+    th,td{border:1px solid #000;padding:8px;text-align:left;}
+    .bill-header{display:flex;justify-content:space-between;align-items:center;}
+    .bill-header-left{display:flex;align-items:center;}
+    .bill-header-left img{height:60px;margin-right:10px;}
+    .preview-img{max-width:150px;margin-top:10px;border:1px solid #ccc;border-radius:6px;}
+  </style>
+  </head><body>` + content + `</body></html>`);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
+}
 
-      if (billData.uploadedImg) {
-        doc.addImage(billData.uploadedImg, "JPEG", 140, 50, 50, 50);
-        y += 60;
-      }
+function downloadBillPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const bill = bills[bills.length-1];
+  doc.setFont("times","bold");
+  doc.setFontSize(20);
+  doc.text("KAIZEN GROUP", 20,20);
+  doc.setFontSize(14);
+  doc.text("Jewelry Bill",20,28);
+  doc.setFont("times","normal");
+  doc.text("Bill No: "+bill.billNo,150,20);
+  doc.text("Date: "+bill.date,150,28);
+  doc.text("GST: 27ABCDE1234F2Z5",150,36);
 
-      // Footer
-      doc.line(20, y + 25, 190, y + 25);
-      doc.text("Authorized Signatory", 150, y + 35);
-      doc.setFontSize(10);
-      doc.text("Thank you for shopping with Kaizen Group!", 105, y + 50, null, null, "center");
+  let y=45;
+  doc.text("Metal KT: "+bill.kt+"K",20,y); y+=8;
+  doc.text("Gross Weight: "+bill.gross.toFixed(3),20,y); y+=8;
+  doc.text("Diamond CTW: "+bill.ctw.toFixed(3),20,y); y+=8;
+  doc.text("Diamond Weight: "+bill.dwt.toFixed(3),20,y); y+=8;
+  doc.text("Net Weight: "+bill.net.toFixed(3),20,y); y+=8;
+  doc.text("Fine: "+bill.fine.toFixed(3),20,y); y+=8;
+  doc.text("Labour Charges: Rs "+bill.labour.toFixed(3),20,y); y+=15;
+  doc.text("Thank you for shopping with KAIZEN GROUP!",105,y, null, null, "center"); y+=15;
+  doc.text("Authorised Sign:",150,y);
+  doc.save("Jewelry_Bill_"+bill.billNo+".pdf");
+}
 
-      doc.save("Jewelry_Bill_" + billData.billNo + ".pdf");
-    }
-  </script>
+function printIndividualBill(index){
+  const bill = bills[index];
+  const w = window.open();
+  w.document.write(`<html><head><title>Print Bill</title>
+    <style>
+      body{font-family:'Times New Roman',serif;padding:20px;}
+      table{width:100%;border-collapse:collapse;margin-top:15px;}
+      th,td{border:1px solid #000;padding:8px;text-align:left;}
+      .bill-header{display:flex;justify-content:space-between;align-items:center;}
+      .bill-header-left{display:flex;align-items:center;}
+      .bill-header-left img{height:60px;margin-right:10px;}
+      .preview-img{max-width:150px;margin-top:10px;border:1px solid #ccc;border-radius:6px;}
+      .author-sign{margin-top:30px;text-align:right;font-weight:bold;}
+    </style>
+    </head><body>
+    <div class="bill-header">
+      <div class="bill-header-left">
+        <img src="logo.jpg" alt="Logo" class="logo">
+        <div class="company-name">KAIZEN GROUP</div>
+      </div>
+      <div class="bill-header-right">
+        <p><b>Bill No:</b> ${bill.billNo}</p>
+        <p><b>Date:</b> ${bill.date}</p>
+        <p><b>GST:</b> 27ABCDE1234F2Z5</p>
+      </div>
+    </div>
+    <table>
+      <tr><th>Metal KT</th><td>${bill.kt}K</td></tr>
+      <tr><th>Gross Weight</th><td>${bill.gross.toFixed(3)}</td></tr>
+      <tr><th>Diamond CTW</th><td>${bill.ctw.toFixed(3)}</td></tr>
+      <tr><th>Diamond Weight</th><td>${bill.dwt.toFixed(3)}</td></tr>
+      <tr><th>Net Weight</th><td>${bill.net.toFixed(3)}</td></tr>
+      <tr><th>Fine</th><td>${bill.fine.toFixed(3)}</td></tr>
+      <tr><th>Labour</th><td>Rs ${bill.labour.toFixed(3)}</td></tr>
+    </table>
+    <div style="text-align:center; margin-top:15px;">
+      <img src="${bill.img}" class="preview-img">
+    </div>
+    <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>KAIZEN GROUP</b>!</p>
+    <div class="author-sign">Authorised Sign: </div>
+    </body></html>`);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
+}
 
+function printSummary(){
+  const content = document.getElementById("summaryPreview").innerHTML;
+  const w = window.open();
+  w.document.write(`<html><head><title>Print Summary</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:20px;}
+    table{width:100%;border-collapse:collapse;margin-top:15px;}
+    th,td{border:1px solid #000;padding:8px;text-align:left;}
+  </style>
+  </head><body>` + content + `</body></html>`);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
+}
+
+function downloadSummaryPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("KAIZEN GROUP Bill Summary",20,20);
+
+  // Prepare data without Action column
+  const columns = ["Bill No","Date","KT","Gross","CTW","DWT","Net","Fine","Labour"];
+  const rows = bills.map(b => [
+    b.billNo, b.date, b.kt+"K", b.gross.toFixed(3), b.ctw.toFixed(3),
+    b.dwt.toFixed(3), b.net.toFixed(3), b.fine.toFixed(3), "Rs "+b.labour.toFixed(3)
+  ]);
+
+  doc.autoTable({
+    head:[columns],
+    body:rows,
+    startY:30
+  });
+
+  doc.save("Bill_Summary.pdf");
+}
+
+function downloadSummaryExcel(){
+  const wb = XLSX.utils.book_new();
+
+  // Only include bill data, exclude Action
+  const dataForExcel = bills.map(b => ({
+    "Bill No": b.billNo,
+    "Date": b.date,
+    "KT": b.kt+"K",
+    "Gross": b.gross.toFixed(3),
+    "CTW": b.ctw.toFixed(3),
+    "DWT": b.dwt.toFixed(3),
+    "Net": b.net.toFixed(3),
+    "Fine": b.fine.toFixed(3),
+    "Labour": b.labour.toFixed(3)
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dataForExcel);
+  XLSX.utils.book_append_sheet(wb, ws, "Summary");
+  XLSX.writeFile(wb,"Bill_Summary.xlsx");
+}
+</script>
 </body>
 </html>
-
