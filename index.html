@@ -280,7 +280,7 @@ function downloadBillPDF(){
   doc.setFont("times","normal");
   doc.text("Bill No: "+bill.billNo,150,20);
   doc.text("Date: "+bill.date,150,28);
-  doc.text("GST: 27ABCDE1234F2Z5",150,36);
+  doc.text("GST: ",150,36);
 
   let y=45;
   doc.text("Metal KT: "+bill.kt+"K",20,y); y+=8;
@@ -411,4 +411,5 @@ function downloadSummaryExcel(){
 </script>
 </body>
 </html>
+
 
