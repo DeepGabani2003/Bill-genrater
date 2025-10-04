@@ -5,148 +5,208 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jewelry Bill & Summary</title>
 
-<!-- Libraries -->
+<!-- jsPDF & AutoTable -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<!-- SheetJS for Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-  body {
-    background: #f9f9f9;
-    font-family: 'Times New Roman', serif;
-    padding: 20px;
-  }
-  h1 {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
-  .bill-form, .summary-section {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-  }
-  th, td {
-    border: 1px solid #000;
-    padding: 8px;
-    text-align: left;
-  }
-  img {
-    max-width: 100px;
-    max-height: 100px;
-    border-radius: 8px;
-  }
-  .btn {
-    border-radius: 5px;
-    margin: 2px;
-  }
+body {
+  font-family: 'Times New Roman', serif;
+  background: linear-gradient(135deg,#f9f9f9,#f1f1f1);
+  margin:0; padding:20px;
+}
+.container {
+  max-width:700px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:10px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+  border:2px solid #d4af37;
+}
+h2 { text-align:center; color:#b8860b; text-transform:uppercase; margin-bottom:20px; }
+label { display:block; font-weight:bold; margin:10px 0 5px; }
+input, select, button { width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:6px; font-size:16px; }
+button { background:#d4af37; color:#fff; font-weight:bold; border:none; cursor:pointer; transition:0.3s; }
+button:hover { background:#b8860b; }
+.note { text-align:center; font-size:13px; margin-top:-10px; margin-bottom:15px; color:#555; }
+.bill-preview, .summary-preview { display:none; margin-top:25px; padding:20px; border:2px solid #000; background:#fff; }
+.bill-header { display:flex; justify-content:space-between; align-items:center; }
+.bill-header-left { display:flex; align-items:center; }
+.bill-header-left img.logo { height:60px; margin-right:10px; }
+.bill-header-left .company-name { font-size:28px; font-weight:bold; }
+.bill-header-right { text-align:right; font-size:14px; }
+table { width:100%; border-collapse: collapse; margin-top:15px; }
+th, td { border:1px solid #000; padding:8px; text-align:left; }
+.preview-img { max-width:150px; margin-top:10px; border:1px solid #ccc; border-radius:6px; }
+.action-btn { width:auto; display:inline-block; margin-right:10px; }
+.delete-btn { background:#d9534f; margin-left:5px; }
+.delete-btn:hover { background:#c9302c; }
+.reset-btn { background:#5bc0de; margin-left:5px; }
+.reset-btn:hover { background:#31b0d5; }
+td span { cursor:pointer; font-size:18px; }
 </style>
 </head>
+
 <body>
+<div class="container">
+  <h2>Jewelry Bill Generator</h2>
 
-<h1>Jewelry Bill & Summary</h1>
+  <label>Bill Number</label>
+  <input type="text" id="billNo" placeholder="Enter Bill Number">
 
-<div class="bill-form">
-  <h4>Add New Bill</h4>
-  <div class="row g-3">
-    <div class="col-md-4"><input id="billNo" class="form-control" placeholder="Bill No"></div>
-    <div class="col-md-4"><input id="date" type="date" class="form-control"></div>
-    <div class="col-md-4"><input id="kt" class="form-control" placeholder="KT"></div>
-    <div class="col-md-4"><input id="gross" type="number" step="0.001" class="form-control" placeholder="Gross"></div>
-    <div class="col-md-4"><input id="ctw" type="number" step="0.001" class="form-control" placeholder="CTW"></div>
-    <div class="col-md-4"><input id="dwt" type="number" step="0.001" class="form-control" placeholder="DWT"></div>
-    <div class="col-md-4"><input id="net" type="number" step="0.001" class="form-control" placeholder="Net"></div>
-    <div class="col-md-4"><input id="fine" type="number" step="0.001" class="form-control" placeholder="Fine"></div>
-    <div class="col-md-4"><input id="labour" type="number" step="0.001" class="form-control" placeholder="Labour (Rs)"></div>
-    <div class="col-md-12">
-      <label>Upload Image</label>
-      <input id="image" type="file" accept="image/*" class="form-control">
+  <label>Select Metal KT</label>
+  <select id="kt">
+    <option value="10">10K</option>
+    <option value="14">14K</option>
+    <option value="18">18K</option>
+    <option value="22">22K</option>
+  </select>
+
+  <label>Gross Weight (g)</label>
+  <input type="number" id="grossWt" step="0.001" placeholder="Enter Gross Weight">
+
+  <label>Diamond CTW</label>
+  <input type="number" id="diamondCtw" step="0.001" placeholder="Enter Diamond CTW">
+
+  <label>Upload Product Image</label>
+  <input type="file" id="productImg" accept="image/*">
+  <img id="previewImg" class="preview-img" style="display:none;">
+
+  <p class="note">Click below to generate bill preview</p>
+  <button class="action-btn" onclick="generateBill()">Generate Bill Preview</button>
+
+  <!-- Bill Preview -->
+  <div class="bill-preview" id="billPreview">
+    <div class="bill-header">
+      <div class="bill-header-left">
+        <img src="logo.jpg" alt="Logo" class="logo">
+        <div class="company-name">KAIZEN GROUP</div>
+      </div>
+      <div class="bill-header-right">
+        <p><b>Bill No:</b> <span id="pBillNo"></span></p>
+        <p><b>Date:</b> <span id="pDate"></span></p>
+        <p><b>GST:</b> 27ABCDE1234F2Z5</p>
+      </div>
     </div>
-    <div class="col-md-12 text-end">
-      <button class="btn btn-primary" onclick="addBill()">Add Bill</button>
+    <table>
+      <tr><th>Metal KT</th><td id="pKt"></td></tr>
+      <tr><th>Gross Weight</th><td id="pGross"></td></tr>
+      <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
+      <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
+      <tr><th>Net Weight</th><td id="pNet"></td></tr>
+      <tr><th>Fine</th><td id="pFine"></td></tr>
+      <tr><th>Labour</th><td id="pLabour"></td></tr>
+    </table>
+    <div style="text-align:center; margin-top:15px;">
+      <img id="billImg" class="preview-img">
     </div>
+    <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>KAIZEN GROUP</b>!</p>
+    <button class="action-btn" onclick="printBill()">Print Bill</button>
+    <button class="action-btn" onclick="downloadBillPDF()">Download PDF</button>
   </div>
-</div>
 
-<div class="summary-section">
-  <h4>Bill Summary</h4>
-  <div class="mb-3">
-    <button class="btn btn-success" onclick="downloadSummaryPDF()">Download Summary PDF</button>
-    <button class="btn btn-warning" onclick="downloadSummaryExcel()">Download Excel</button>
-    <button class="btn btn-dark" onclick="printAllBills()">🖨 Print All Bills</button>
-  </div>
-  <div class="table-responsive">
+  <!-- Summary Preview -->
+  <div class="summary-preview" id="summaryPreview">
+    <h3>Bill Summary</h3>
     <table id="summaryTable">
       <thead>
         <tr>
-          <th>Image</th>
-          <th>Bill No</th>
-          <th>Date</th>
-          <th>KT</th>
-          <th>Gross</th>
-          <th>CTW</th>
-          <th>DWT</th>
-          <th>Net</th>
-          <th>Fine</th>
-          <th>Labour</th>
-          <th>Actions</th>
+          <th>Bill No</th><th>Date</th><th>KT</th><th>Gross</th><th>CTW</th>
+          <th>DWT</th><th>Net</th><th>Fine</th><th>Labour</th><th>Action</th>
         </tr>
       </thead>
-      <tbody id="summaryBody"></tbody>
+      <tbody></tbody>
     </table>
+    <div style="margin-top:10px;">
+      <button class="action-btn" onclick="printAllBills()">🖨️ Print All Bills</button>
+      <button class="action-btn" onclick="printSummary()">Print Summary</button>
+      <button class="action-btn" onclick="downloadSummaryPDF()">Download Summary PDF</button>
+      <button class="action-btn" onclick="downloadSummaryExcel()">Download Summary Excel</button>
+      <button class="action-btn reset-btn" onclick="resetAll()">Reset All</button>
+    </div>
   </div>
 </div>
 
 <script>
-let bills = JSON.parse(localStorage.getItem("bills")) || [];
+let bills = [];
+let uploadedImg = null;
 
-document.getElementById("image").addEventListener("change", function(e){
-  const reader = new FileReader();
-  reader.onload = () => this.dataset.base64 = reader.result;
-  reader.readAsDataURL(e.target.files[0]);
+window.onload = function(){
+  const stored = localStorage.getItem("bills");
+  if(stored){
+    bills = JSON.parse(stored);
+    updateSummaryTable();
+  }
+};
+
+document.getElementById("productImg").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = function(evt){
+      uploadedImg = evt.target.result;
+      document.getElementById("previewImg").src = uploadedImg;
+      document.getElementById("previewImg").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
 });
 
-function addBill() {
-  const imageInput = document.getElementById("image");
-  const imageBase64 = imageInput.dataset.base64 || "";
+function generateBill(){
+  let billNo = document.getElementById("billNo").value;
+  let kt = document.getElementById("kt").value;
+  let grossWt = parseFloat(document.getElementById("grossWt").value);
+  let diamondCtw = parseFloat(document.getElementById("diamondCtw").value);
 
-  const bill = {
-    billNo: document.getElementById("billNo").value,
-    date: document.getElementById("date").value,
-    kt: document.getElementById("kt").value,
-    gross: parseFloat(document.getElementById("gross").value) || 0,
-    ctw: parseFloat(document.getElementById("ctw").value) || 0,
-    dwt: parseFloat(document.getElementById("dwt").value) || 0,
-    net: parseFloat(document.getElementById("net").value) || 0,
-    fine: parseFloat(document.getElementById("fine").value) || 0,
-    labour: parseFloat(document.getElementById("labour").value) || 0,
-    image: imageBase64
-  };
+  if(isNaN(grossWt) || isNaN(diamondCtw) || !billNo){
+    alert("⚠️ Fill all fields correctly!");
+    return;
+  }
 
+  let purity = {10:0.430, 14:0.595, 18:0.760, 22:0.925};
+  let selectedPurity = purity[kt];
+  let diamondWt = diamondCtw/5;
+  let netWt = grossWt - diamondWt;
+  let fine = netWt * selectedPurity;
+  let labour = Math.max(netWt*800,1500);
+
+  let today = new Date();
+  let dateStr = ("0"+today.getDate()).slice(-2) + "/" + ("0"+(today.getMonth()+1)).slice(-2) + "/" + today.getFullYear();
+
+  const bill = { billNo, date:dateStr, kt, gross:grossWt, ctw:diamondCtw, dwt:diamondWt, net:netWt, fine, labour, img:uploadedImg || "logo.jpg" };
   bills.push(bill);
   localStorage.setItem("bills", JSON.stringify(bills));
-  renderSummary();
-  clearForm();
+
+  // Update Bill Preview
+  document.getElementById("billPreview").style.display = "block";
+  document.getElementById("pBillNo").innerText = billNo;
+  document.getElementById("pDate").innerText = dateStr;
+  document.getElementById("pKt").innerText = kt + "K";
+  document.getElementById("pGross").innerText = grossWt.toFixed(3);
+  document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
+  document.getElementById("pDwt").innerText = diamondWt.toFixed(3);
+  document.getElementById("pNet").innerText = netWt.toFixed(3);
+  document.getElementById("pFine").innerText = fine.toFixed(3);
+  document.getElementById("pLabour").innerText = "Rs "+labour.toFixed(3);
+  document.getElementById("billImg").src = uploadedImg || "logo.jpg";
+
+  updateSummaryTable();
 }
 
-function clearForm() {
-  document.querySelectorAll('.form-control').forEach(el => el.value = "");
-  delete document.getElementById("image").dataset.base64;
-}
+function updateSummaryTable(){
+  const tbody = document.querySelector("#summaryTable tbody");
+  tbody.innerHTML = "";
+  let totalFine = 0;
+  let totalLabour = 0;
 
-function renderSummary() {
-  const tbody = document.getElementById("summaryBody");
-  tbody.innerHTML = bills.map((b, i) => `
-    <tr>
-      <td>${b.image ? `<img src="${b.image}" alt="Bill Image">` : ''}</td>
+  bills.forEach((b,index)=>{
+    totalFine += b.fine;
+    totalLabour += b.labour;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
       <td>${b.billNo}</td>
       <td>${b.date}</td>
       <td>${b.kt}K</td>
@@ -155,106 +215,103 @@ function renderSummary() {
       <td>${b.dwt.toFixed(3)}</td>
       <td>${b.net.toFixed(3)}</td>
       <td>${b.fine.toFixed(3)}</td>
-      <td>₹${b.labour.toFixed(3)}</td>
-      <td>
-        <button class="btn btn-sm btn-info" onclick="printBill(${i})">Print</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteBill(${i})">Delete</button>
+      <td>Rs ${b.labour.toFixed(3)}</td>
+      <td style="text-align:center;">
+        <span style="color:#d9534f;" title="Delete" onclick="deleteBill(${index})">&#128465;</span>
+        <span style="color:#5bc0de; margin-left:10px;" title="Print Bill" onclick="printIndividualBill(${index})">&#128438;</span>
       </td>
-    </tr>
-  `).join("");
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if(bills.length > 0){
+    const trTotal = document.createElement("tr");
+    trTotal.style.fontWeight = "bold";
+    trTotal.innerHTML = `
+      <td colspan="7" style="text-align:right;">Total:</td>
+      <td>${totalFine.toFixed(3)}</td>
+      <td>Rs ${totalLabour.toFixed(3)}</td>
+      <td></td>
+    `;
+    tbody.appendChild(trTotal);
+  }
+
+  document.getElementById("summaryPreview").style.display = bills.length ? "block":"none";
 }
 
 function deleteBill(index){
-  if(confirm("Delete this bill?")){
+  if(confirm("Are you sure to delete this bill?")){
     bills.splice(index,1);
     localStorage.setItem("bills", JSON.stringify(bills));
-    renderSummary();
+    updateSummaryTable();
   }
 }
 
-function printBill(i){
-  const b = bills[i];
-  const w = window.open("");
-  w.document.write(`
-  <html><head><title>Bill ${b.billNo}</title>
+function resetAll(){
+  if(confirm("Are you sure to reset all bills?")){
+    bills = [];
+    localStorage.removeItem("bills");
+    updateSummaryTable();
+  }
+}
+
+// 🖨️ Print All Bills
+function printAllBills(){
+  if(bills.length === 0){
+    alert("No bills to print!");
+    return;
+  }
+  const w = window.open();
+  let content = `
+  <html><head><title>All Bills</title>
   <style>
     body{font-family:'Times New Roman',serif;padding:20px;}
     table{width:100%;border-collapse:collapse;margin-top:15px;}
     th,td{border:1px solid #000;padding:8px;text-align:left;}
-  </style></head><body>
-  <h2>Jewelry Bill - ${b.billNo}</h2>
-  ${b.image ? `<img src="${b.image}" style="max-width:200px;"><br>` : ''}
-  <table>
-    <tr><th>Date</th><td>${b.date}</td></tr>
-    <tr><th>KT</th><td>${b.kt}</td></tr>
-    <tr><th>Gross</th><td>${b.gross}</td></tr>
-    <tr><th>CTW</th><td>${b.ctw}</td></tr>
-    <tr><th>DWT</th><td>${b.dwt}</td></tr>
-    <tr><th>Net</th><td>${b.net}</td></tr>
-    <tr><th>Fine</th><td>${b.fine}</td></tr>
-    <tr><th>Labour</th><td>₹${b.labour}</td></tr>
-  </table>
-  </body></html>`);
-  w.document.close(); w.focus(); w.print(); w.close();
-}
+    .bill{page-break-after:always;margin-bottom:40px;}
+    .bill-header{display:flex;justify-content:space-between;align-items:center;}
+    .bill-header-left{display:flex;align-items:center;}
+    .bill-header-left img{height:60px;margin-right:10px;}
+    .preview-img{max-width:150px;margin-top:10px;border:1px solid #ccc;border-radius:6px;}
+  </style></head><body>`;
 
-function printAllBills(){
-  const w = window.open("");
-  let html = `<html><head><title>All Bills</title>
-  <style>
-    body{font-family:'Times New Roman',serif;padding:20px;}
-    .bill{margin-bottom:30px;}
-    table{width:100%;border-collapse:collapse;margin-top:10px;}
-    th,td{border:1px solid #000;padding:6px;text-align:left;}
-    img{max-width:150px;margin-bottom:10px;}
-  </style></head><body>
-  <h1>All Bills Summary</h1>`;
-
-  bills.forEach(b => {
-    html += `<div class="bill">
-      <h4>Bill No: ${b.billNo}</h4>
-      ${b.image ? `<img src="${b.image}" alt="bill">` : ''}
+  bills.forEach(b=>{
+    content += `
+    <div class="bill">
+      <div class="bill-header">
+        <div class="bill-header-left">
+          <img src="logo.jpg" alt="Logo">
+          <div class="company-name">KAIZEN GROUP</div>
+        </div>
+        <div class="bill-header-right">
+          <p><b>Bill No:</b> ${b.billNo}</p>
+          <p><b>Date:</b> ${b.date}</p>
+          <p><b>GST:</b> 27ABCDE1234F2Z5</p>
+        </div>
+      </div>
       <table>
-        <tr><th>Date</th><td>${b.date}</td></tr>
-        <tr><th>KT</th><td>${b.kt}</td></tr>
-        <tr><th>Gross</th><td>${b.gross}</td></tr>
-        <tr><th>CTW</th><td>${b.ctw}</td></tr>
-        <tr><th>DWT</th><td>${b.dwt}</td></tr>
-        <tr><th>Net</th><td>${b.net}</td></tr>
-        <tr><th>Fine</th><td>${b.fine}</td></tr>
-        <tr><th>Labour</th><td>₹${b.labour}</td></tr>
+        <tr><th>Metal KT</th><td>${b.kt}K</td></tr>
+        <tr><th>Gross Weight</th><td>${b.gross.toFixed(3)}</td></tr>
+        <tr><th>Diamond CTW</th><td>${b.ctw.toFixed(3)}</td></tr>
+        <tr><th>Diamond Weight</th><td>${b.dwt.toFixed(3)}</td></tr>
+        <tr><th>Net Weight</th><td>${b.net.toFixed(3)}</td></tr>
+        <tr><th>Fine</th><td>${b.fine.toFixed(3)}</td></tr>
+        <tr><th>Labour</th><td>Rs ${b.labour.toFixed(3)}</td></tr>
       </table>
+      <div style="text-align:center;margin-top:10px;">
+        <img src="${b.img}" class="preview-img">
+      </div>
+      <p style="text-align:center;margin-top:10px;">Thank you for shopping with <b>KAIZEN GROUP</b>!</p>
     </div>`;
   });
-  html += "</body></html>";
-  w.document.write(html);
-  w.document.close(); w.focus(); w.print(); w.close();
-}
 
-function downloadSummaryPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text("Kirtijewels Bill Summary", 20, 20);
-  const columns = ["Bill No","Date","KT","Gross","CTW","DWT","Net","Fine","Labour"];
-  const rows = bills.map(b => [b.billNo,b.date,b.kt+"K",b.gross.toFixed(3),b.ctw.toFixed(3),b.dwt.toFixed(3),b.net.toFixed(3),b.fine.toFixed(3),"₹"+b.labour.toFixed(3)]);
-  doc.autoTable({ head:[columns], body:rows, startY:30 });
-  doc.save("Bill_Summary.pdf");
+  content += `</body></html>`;
+  w.document.write(content);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
 }
-
-function downloadSummaryExcel(){
-  const wb = XLSX.utils.book_new();
-  const dataForExcel = bills.map(b => ({
-    "Bill No": b.billNo, "Date": b.date, "KT": b.kt+"K",
-    "Gross": b.gross.toFixed(3), "CTW": b.ctw.toFixed(3),
-    "DWT": b.dwt.toFixed(3), "Net": b.net.toFixed(3),
-    "Fine": b.fine.toFixed(3), "Labour": b.labour.toFixed(3)
-  }));
-  const ws = XLSX.utils.json_to_sheet(dataForExcel);
-  XLSX.utils.book_append_sheet(wb, ws, "Summary");
-  XLSX.writeFile(wb, "Bill_Summary.xlsx");
-}
-
-renderSummary();
 </script>
 </body>
 </html>
