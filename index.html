@@ -9,157 +9,144 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-body {
-  font-family: 'Poppins', sans-serif;
-  margin: 20px;
-  background: #fafafa;
-}
-h2 {
-  text-align: center;
-  color: #333;
-}
-.card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 20px;
-}
-input, select, button {
-  margin: 5px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-button {
-  background: #007bff;
-  color: #fff;
-  cursor: pointer;
-}
-button:hover {
-  background: #0056b3;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-  background: #fff;
-}
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-th {
-  background: #007bff;
-  color: white;
-}
-img.preview {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-.summary-btns {
-  text-align: center;
-  margin: 15px 0;
-}
+  body {
+    background: #f9f9f9;
+    font-family: 'Times New Roman', serif;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  .bill-form, .summary-section {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  th, td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+  }
+  img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 8px;
+  }
+  .btn {
+    border-radius: 5px;
+    margin: 2px;
+  }
 </style>
 </head>
 <body>
 
-<h2>Jewelry Bill Generator</h2>
+<h1>Jewelry Bill & Summary</h1>
 
-<div class="card">
-  <label>Bill No: <input type="text" id="billNo" placeholder="Enter Bill No"></label>
-  <label>Date: <input type="date" id="date"></label>
-  <label>KT: <input type="number" id="kt" placeholder="e.g. 22"></label><br>
-  <label>Gross Wt: <input type="number" id="gross" step="0.001"></label>
-  <label>CTW: <input type="number" id="ctw" step="0.001"></label>
-  <label>DWT: <input type="number" id="dwt" step="0.001"></label>
-  <label>Labour (₹): <input type="number" id="labour" step="0.01"></label><br>
-  <label>Upload Image: <input type="file" id="imageUpload" accept="image/*"></label>
-  <button onclick="addBill()">Add Bill</button>
+<div class="bill-form">
+  <h4>Add New Bill</h4>
+  <div class="row g-3">
+    <div class="col-md-4"><input id="billNo" class="form-control" placeholder="Bill No"></div>
+    <div class="col-md-4"><input id="date" type="date" class="form-control"></div>
+    <div class="col-md-4"><input id="kt" class="form-control" placeholder="KT"></div>
+    <div class="col-md-4"><input id="gross" type="number" step="0.001" class="form-control" placeholder="Gross"></div>
+    <div class="col-md-4"><input id="ctw" type="number" step="0.001" class="form-control" placeholder="CTW"></div>
+    <div class="col-md-4"><input id="dwt" type="number" step="0.001" class="form-control" placeholder="DWT"></div>
+    <div class="col-md-4"><input id="net" type="number" step="0.001" class="form-control" placeholder="Net"></div>
+    <div class="col-md-4"><input id="fine" type="number" step="0.001" class="form-control" placeholder="Fine"></div>
+    <div class="col-md-4"><input id="labour" type="number" step="0.001" class="form-control" placeholder="Labour (Rs)"></div>
+    <div class="col-md-12">
+      <label>Upload Image</label>
+      <input id="image" type="file" accept="image/*" class="form-control">
+    </div>
+    <div class="col-md-12 text-end">
+      <button class="btn btn-primary" onclick="addBill()">Add Bill</button>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-  <h3>Summary</h3>
-  <div class="summary-btns">
-    <button onclick="printAllBills()">🖨️ Print All</button>
-    <button onclick="downloadSummaryPDF()">📄 Download PDF</button>
-    <button onclick="downloadSummaryExcel()">📊 Download Excel</button>
+<div class="summary-section">
+  <h4>Bill Summary</h4>
+  <div class="mb-3">
+    <button class="btn btn-success" onclick="downloadSummaryPDF()">Download Summary PDF</button>
+    <button class="btn btn-warning" onclick="downloadSummaryExcel()">Download Excel</button>
+    <button class="btn btn-dark" onclick="printAllBills()">🖨 Print All Bills</button>
   </div>
-
-  <table id="summaryTable">
-    <thead>
-      <tr>
-        <th>Bill No</th><th>Date</th><th>KT</th><th>Gross</th>
-        <th>CTW</th><th>DWT</th><th>Net</th><th>Fine</th>
-        <th>Labour (₹)</th><th>Image</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-    <tfoot>
-      <tr>
-        <th colspan="7">Total</th>
-        <th id="totalFine">0.000</th>
-        <th id="totalLabour">0.00</th>
-        <th colspan="2"></th>
-      </tr>
-    </tfoot>
-  </table>
+  <div class="table-responsive">
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Bill No</th>
+          <th>Date</th>
+          <th>KT</th>
+          <th>Gross</th>
+          <th>CTW</th>
+          <th>DWT</th>
+          <th>Net</th>
+          <th>Fine</th>
+          <th>Labour</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="summaryBody"></tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-let bills = JSON.parse(localStorage.getItem('bills') || '[]');
-renderSummary();
+let bills = JSON.parse(localStorage.getItem("bills")) || [];
 
-document.getElementById('imageUpload').addEventListener('change', function(e){
+document.getElementById("image").addEventListener("change", function(e){
   const reader = new FileReader();
-  reader.onload = function(){
-    document.getElementById('imageUpload').setAttribute('data-img', reader.result);
-  };
+  reader.onload = () => this.dataset.base64 = reader.result;
   reader.readAsDataURL(e.target.files[0]);
 });
 
-function addBill(){
-  const billNo = document.getElementById('billNo').value.trim();
-  const date = document.getElementById('date').value;
-  const kt = parseFloat(document.getElementById('kt').value);
-  const gross = parseFloat(document.getElementById('gross').value);
-  const ctw = parseFloat(document.getElementById('ctw').value);
-  const dwt = parseFloat(document.getElementById('dwt').value);
-  const labour = parseFloat(document.getElementById('labour').value);
-  const image = document.getElementById('imageUpload').getAttribute('data-img') || '';
+function addBill() {
+  const imageInput = document.getElementById("image");
+  const imageBase64 = imageInput.dataset.base64 || "";
 
-  if(!billNo || !kt || !gross) return alert('Please fill mandatory fields!');
+  const bill = {
+    billNo: document.getElementById("billNo").value,
+    date: document.getElementById("date").value,
+    kt: document.getElementById("kt").value,
+    gross: parseFloat(document.getElementById("gross").value) || 0,
+    ctw: parseFloat(document.getElementById("ctw").value) || 0,
+    dwt: parseFloat(document.getElementById("dwt").value) || 0,
+    net: parseFloat(document.getElementById("net").value) || 0,
+    fine: parseFloat(document.getElementById("fine").value) || 0,
+    labour: parseFloat(document.getElementById("labour").value) || 0,
+    image: imageBase64
+  };
 
-  const net = gross - (ctw + dwt);
-  const fine = net * (kt / 24);
-
-  bills.push({ billNo, date, kt, gross, ctw, dwt, net, fine, labour, image });
-  localStorage.setItem('bills', JSON.stringify(bills));
+  bills.push(bill);
+  localStorage.setItem("bills", JSON.stringify(bills));
   renderSummary();
-  clearInputs();
+  clearForm();
 }
 
-function clearInputs(){
-  document.querySelectorAll('#billNo,#gross,#ctw,#dwt,#labour,#kt,#imageUpload').forEach(e=>e.value='');
-  document.getElementById('imageUpload').removeAttribute('data-img');
+function clearForm() {
+  document.querySelectorAll('.form-control').forEach(el => el.value = "");
+  delete document.getElementById("image").dataset.base64;
 }
 
-function renderSummary(){
-  const tbody = document.querySelector('#summaryTable tbody');
-  tbody.innerHTML = '';
-  let totalFine = 0, totalLabour = 0;
-
-  bills.forEach((b,i)=>{
-    totalFine += b.fine;
-    totalLabour += b.labour;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+function renderSummary() {
+  const tbody = document.getElementById("summaryBody");
+  tbody.innerHTML = bills.map((b, i) => `
+    <tr>
+      <td>${b.image ? `<img src="${b.image}" alt="Bill Image">` : ''}</td>
       <td>${b.billNo}</td>
       <td>${b.date}</td>
       <td>${b.kt}K</td>
@@ -168,103 +155,106 @@ function renderSummary(){
       <td>${b.dwt.toFixed(3)}</td>
       <td>${b.net.toFixed(3)}</td>
       <td>${b.fine.toFixed(3)}</td>
-      <td>₹${b.labour.toFixed(2)}</td>
-      <td>${b.image ? `<img src="${b.image}" class="preview">` : '-'}</td>
+      <td>₹${b.labour.toFixed(3)}</td>
       <td>
-        <button onclick="printBill(${i})">🖨️</button>
-        <button onclick="deleteBill(${i})">🗑️</button>
-      </td>`;
-    tbody.appendChild(tr);
-  });
-  document.getElementById('totalFine').textContent = totalFine.toFixed(3);
-  document.getElementById('totalLabour').textContent = totalLabour.toFixed(2);
+        <button class="btn btn-sm btn-info" onclick="printBill(${i})">Print</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteBill(${i})">Delete</button>
+      </td>
+    </tr>
+  `).join("");
 }
 
-function deleteBill(i){
+function deleteBill(index){
   if(confirm("Delete this bill?")){
-    bills.splice(i,1);
-    localStorage.setItem('bills', JSON.stringify(bills));
+    bills.splice(index,1);
+    localStorage.setItem("bills", JSON.stringify(bills));
     renderSummary();
   }
 }
 
 function printBill(i){
   const b = bills[i];
-  const content = `
-  <div style="text-align:center;">
-    <h2>KIRTI JEWELS</h2><hr>
-    <h3>Jewelry Bill</h3>
-  </div>
+  const w = window.open("");
+  w.document.write(`
+  <html><head><title>Bill ${b.billNo}</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:20px;}
+    table{width:100%;border-collapse:collapse;margin-top:15px;}
+    th,td{border:1px solid #000;padding:8px;text-align:left;}
+  </style></head><body>
+  <h2>Jewelry Bill - ${b.billNo}</h2>
+  ${b.image ? `<img src="${b.image}" style="max-width:200px;"><br>` : ''}
   <table>
-    <tr><th>Bill No</th><td>${b.billNo}</td></tr>
     <tr><th>Date</th><td>${b.date}</td></tr>
-    <tr><th>KT</th><td>${b.kt}K</td></tr>
-    <tr><th>Gross</th><td>${b.gross.toFixed(3)}</td></tr>
-    <tr><th>CTW</th><td>${b.ctw.toFixed(3)}</td></tr>
-    <tr><th>DWT</th><td>${b.dwt.toFixed(3)}</td></tr>
-    <tr><th>Net</th><td>${b.net.toFixed(3)}</td></tr>
-    <tr><th>Fine</th><td>${b.fine.toFixed(3)}</td></tr>
-    <tr><th>Labour</th><td>₹${b.labour.toFixed(2)}</td></tr>
-  </table><br>
-  ${b.image ? `<img src="${b.image}" width="150">` : ''}
-  `;
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Print Bill</title>
-  <style>body{font-family:'Times New Roman';padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #000;padding:6px;text-align:left;}</style>
-  </head><body>${content}</body></html>`);
-  w.document.close(); w.print();
+    <tr><th>KT</th><td>${b.kt}</td></tr>
+    <tr><th>Gross</th><td>${b.gross}</td></tr>
+    <tr><th>CTW</th><td>${b.ctw}</td></tr>
+    <tr><th>DWT</th><td>${b.dwt}</td></tr>
+    <tr><th>Net</th><td>${b.net}</td></tr>
+    <tr><th>Fine</th><td>${b.fine}</td></tr>
+    <tr><th>Labour</th><td>₹${b.labour}</td></tr>
+  </table>
+  </body></html>`);
+  w.document.close(); w.focus(); w.print(); w.close();
 }
 
 function printAllBills(){
-  const content = bills.map(b => `
-  <div style="page-break-after:always;text-align:center;">
-    <h2>KIRTI JEWELS</h2><hr><h3>Jewelry Bill</h3>
-    <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
-      <tr><th>Bill No</th><td>${b.billNo}</td></tr>
-      <tr><th>Date</th><td>${b.date}</td></tr>
-      <tr><th>KT</th><td>${b.kt}K</td></tr>
-      <tr><th>Gross</th><td>${b.gross.toFixed(3)}</td></tr>
-      <tr><th>CTW</th><td>${b.ctw.toFixed(3)}</td></tr>
-      <tr><th>DWT</th><td>${b.dwt.toFixed(3)}</td></tr>
-      <tr><th>Net</th><td>${b.net.toFixed(3)}</td></tr>
-      <tr><th>Fine</th><td>${b.fine.toFixed(3)}</td></tr>
-      <tr><th>Labour</th><td>₹${b.labour.toFixed(2)}</td></tr>
-    </table><br>${b.image ? `<img src="${b.image}" width="150">` : ''}
-  </div>
-  `).join('');
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>All Bills</title></head><body>${content}</body></html>`);
-  w.document.close(); w.print();
+  const w = window.open("");
+  let html = `<html><head><title>All Bills</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:20px;}
+    .bill{margin-bottom:30px;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{border:1px solid #000;padding:6px;text-align:left;}
+    img{max-width:150px;margin-bottom:10px;}
+  </style></head><body>
+  <h1>All Bills Summary</h1>`;
+
+  bills.forEach(b => {
+    html += `<div class="bill">
+      <h4>Bill No: ${b.billNo}</h4>
+      ${b.image ? `<img src="${b.image}" alt="bill">` : ''}
+      <table>
+        <tr><th>Date</th><td>${b.date}</td></tr>
+        <tr><th>KT</th><td>${b.kt}</td></tr>
+        <tr><th>Gross</th><td>${b.gross}</td></tr>
+        <tr><th>CTW</th><td>${b.ctw}</td></tr>
+        <tr><th>DWT</th><td>${b.dwt}</td></tr>
+        <tr><th>Net</th><td>${b.net}</td></tr>
+        <tr><th>Fine</th><td>${b.fine}</td></tr>
+        <tr><th>Labour</th><td>₹${b.labour}</td></tr>
+      </table>
+    </div>`;
+  });
+  html += "</body></html>";
+  w.document.write(html);
+  w.document.close(); w.focus(); w.print(); w.close();
 }
 
 function downloadSummaryPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  doc.text("KIRTI JEWELS Bill Summary",20,20);
+  doc.text("Kirtijewels Bill Summary", 20, 20);
   const columns = ["Bill No","Date","KT","Gross","CTW","DWT","Net","Fine","Labour"];
-  const rows = bills.map(b => [b.billNo,b.date,b.kt+"K",b.gross.toFixed(3),b.ctw.toFixed(3),b.dwt.toFixed(3),b.net.toFixed(3),b.fine.toFixed(3),"₹"+b.labour.toFixed(2)]);
+  const rows = bills.map(b => [b.billNo,b.date,b.kt+"K",b.gross.toFixed(3),b.ctw.toFixed(3),b.dwt.toFixed(3),b.net.toFixed(3),b.fine.toFixed(3),"₹"+b.labour.toFixed(3)]);
   doc.autoTable({ head:[columns], body:rows, startY:30 });
-  let totalFine = bills.reduce((a,b)=>a+b.fine,0);
-  let totalLabour = bills.reduce((a,b)=>a+b.labour,0);
-  doc.autoTable({ startY: doc.lastAutoTable.finalY+2, head:[["","","","","","","Total",totalFine.toFixed(3),"₹"+totalLabour.toFixed(2)]], theme:'plain' });
   doc.save("Bill_Summary.pdf");
 }
 
 function downloadSummaryExcel(){
   const wb = XLSX.utils.book_new();
-  const data = bills.map(b => ({
+  const dataForExcel = bills.map(b => ({
     "Bill No": b.billNo, "Date": b.date, "KT": b.kt+"K",
     "Gross": b.gross.toFixed(3), "CTW": b.ctw.toFixed(3),
     "DWT": b.dwt.toFixed(3), "Net": b.net.toFixed(3),
-    "Fine": b.fine.toFixed(3), "Labour (₹)": b.labour.toFixed(2)
+    "Fine": b.fine.toFixed(3), "Labour": b.labour.toFixed(3)
   }));
-  const totalFine = bills.reduce((a,b)=>a+b.fine,0);
-  const totalLabour = bills.reduce((a,b)=>a+b.labour,0);
-  data.push({ "Net": "Total", "Fine": totalFine.toFixed(3), "Labour (₹)": totalLabour.toFixed(2) });
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = XLSX.utils.json_to_sheet(dataForExcel);
   XLSX.utils.book_append_sheet(wb, ws, "Summary");
   XLSX.writeFile(wb, "Bill_Summary.xlsx");
 }
+
+renderSummary();
 </script>
 </body>
 </html>
