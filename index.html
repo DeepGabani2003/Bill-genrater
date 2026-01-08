@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Jewelry Bill & Summary</title>
 
-<!-- jsPDF & AutoTable -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
-<!-- SheetJS for Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-body {
-  font-family: 'Times New Roman', serif;
-  background: linear-gradient(135deg,#f9f9f9,#f1f1f1);
-  margin:0; padding:20px;
+body{
+  font-family:'Times New Roman',serif;
+  background:linear-gradient(135deg,#f9f9f9,#f1f1f1);
+  margin:0;
+  padding:20px;
 }
-.container {
-  max-width:700px;
+.container{
+  max-width:900px;
   margin:auto;
   background:#fff;
   padding:25px;
@@ -27,392 +25,813 @@ body {
   box-shadow:0 4px 15px rgba(0,0,0,0.1);
   border:2px solid #d4af37;
 }
-h2 { text-align:center; color:#b8860b; text-transform:uppercase; margin-bottom:20px; }
-label { display:block; font-weight:bold; margin:10px 0 5px; }
-input, select, button { width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:6px; font-size:16px; }
-button { background:#d4af37; color:#fff; font-weight:bold; border:none; cursor:pointer; transition:0.3s; }
-button:hover { background:#b8860b; }
-.note { text-align:center; font-size:13px; margin-top:-10px; margin-bottom:15px; color:#555; }
-.bill-preview, .summary-preview { display:none; margin-top:25px; padding:20px; border:2px solid #000; background:#fff; }
-.bill-header { display:flex; justify-content:space-between; align-items:center; }
-.bill-header-left { display:flex; align-items:center; }
-.bill-header-left img.logo { height:60px; margin-right:10px; }
-.bill-header-left .company-name { font-size:28px; font-weight:bold; }
-.bill-header-right { text-align:right; font-size:14px; }
-table { width:100%; border-collapse: collapse; margin-top:15px; }
-th, td { border:1px solid #000; padding:8px; text-align:left; }
-.preview-img { max-width:150px; margin-top:10px; border:1px solid #ccc; border-radius:6px; }
-.action-btn { width:auto; display:inline-block; margin-right:10px; }
-.delete-btn { background:#d9534f; margin-left:5px; }
-.delete-btn:hover { background:#c9302c; }
-.reset-btn { background:#5bc0de; margin-left:5px; }
-.reset-btn:hover { background:#31b0d5; }
-td span { cursor:pointer; font-size:18px; }
+h2{
+  text-align:center;
+  color:#b8860b;
+  text-transform:uppercase;
+  margin-bottom:20px;
+}
+h3{ margin-top:20px; }
+label{
+  display:block;
+  font-weight:bold;
+  margin:10px 0 5px;
+}
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin-bottom:15px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:16px;
+  box-sizing:border-box;
+}
+button{
+  background:#d4af37;
+  color:#fff;
+  font-weight:bold;
+  border:none;
+  cursor:pointer;
+  transition:0.3s;
+}
+button:hover{ background:#b8860b; }
+.note{
+  text-align:center;
+  font-size:13px;
+  margin-top:-10px;
+  margin-bottom:15px;
+  color:#555;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+th,td{
+  border:1px solid #000;
+  padding:8px;
+  text-align:left;
+}
+.preview-img{
+  max-width:150px;
+  margin-top:10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+.bill-preview{
+  display:none;
+  margin-top:25px;
+  padding:20px;
+  border:2px solid #000;
+  background:#fff;
+}
+.summary-preview{
+  display:block;
+  margin-top:25px;
+  padding:20px;
+  border:2px solid #000;
+  background:#fff;
+}
+.bill-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.bill-header-left{
+  display:flex;
+  align-items:center;
+}
+.bill-header-left img.logo{
+  height:60px;
+  margin-right:10px;
+}
+.bill-header-left .company-name{
+  font-size:26px;
+  font-weight:bold;
+}
+.bill-header-right{
+  text-align:right;
+  font-size:14px;
+}
+.action-btn{
+  width:auto;
+  display:inline-block;
+  margin-right:10px;
+}
+.reset-btn{
+  background:#5bc0de;
+}
+.reset-btn:hover{
+  background:#31b0d5;
+}
+td span{
+  cursor:pointer;
+  font-size:18px;
+}
+.summary-grid{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+.left-panel{
+  flex:1 1 560px;
+  min-width:320px;
+}
+.right-panel{
+  flex:0 0 280px;
+  min-width:260px;
+  border:1px solid #000;
+  padding:12px;
+  border-radius:8px;
+  background:#fff;
+}
+.right-panel h4{
+  margin:6px 0 10px;
+}
+.kpi{
+  border:1px solid #000;
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+  background:#fff;
+}
+.kpi-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0;
+}
+.kpi strong{
+  font-size:16px;
+}
+.small-btn{
+  width:100%;
+  margin-top:-5px;
+}
+tfoot td{
+  font-weight:bold;
+  background:#f4f4f4;
+}
+
+/* ===== Modal ===== */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:9999;
+}
+.modal{
+  width:100%;
+  max-width:520px;
+  background:#fff;
+  border-radius:12px;
+  border:2px solid #000;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  padding:16px;
+}
+.modal h3{
+  margin:0 0 10px;
+}
+.modal .row{
+  display:flex;
+  gap:10px;
+}
+.modal .row > div{
+  flex:1;
+}
+.modal .btn-row{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+}
+.modal .btn-row button{
+  width:auto;
+  min-width:120px;
+}
+.hint{
+  font-size:12px;
+  color:#444;
+  margin:-8px 0 12px;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
-  <h2>Jewelry Bill Generator</h2>
 
-  <label>Bill Number</label>
-  <input type="text" id="billNo" placeholder="Enter Bill Number">
+<h2>Jewelry Bill Generator</h2>
 
-  <label>Select Metal KT</label>
-  <select id="kt">
-    <option value="10">10K</option>
-    <option value="14">14K</option>
-    <option value="18">18K</option>
-    <option value="22">22K</option>
-  </select>
+<label>Bill Number</label>
+<input type="text" id="billNo" placeholder="Enter Bill Number" />
 
-  <label>Gross Weight (g)</label>
-  <input type="number" id="grossWt" step="0.001" placeholder="Enter Gross Weight">
+<label>Select Metal KT</label>
+<select id="kt">
+  <option value="10">10K</option>
+  <option value="14">14K</option>
+  <option value="18">18K</option>
+  <option value="22">22K</option>
+</select>
 
-  <label>Diamond CTW</label>
-  <input type="number" id="diamondCtw" step="0.001" placeholder="Enter Diamond CTW">
+<label>Gross Weight (g)</label>
+<input type="number" id="grossWt" step="0.001" />
 
-  <label>Upload Product Image</label>
-  <input type="file" id="productImg" accept="image/*">
-  <img id="previewImg" class="preview-img" style="display:none;">
+<label>Diamond CTW</label>
+<input type="number" id="diamondCtw" step="0.001" />
 
-  <p class="note">Click below to generate bill preview</p>
-  <button class="action-btn" onclick="generateBill()">Generate Bill Preview</button>
+<label>Upload Product Image</label>
+<input type="file" id="productImg" accept="image/*" />
+<img id="previewImg" class="preview-img" style="display:none;" />
 
-  <!-- Bill Preview -->
-  <div class="bill-preview" id="billPreview">
-    <div class="bill-header">
-      <div class="bill-header-left">
-        <img src="logo.jpg" alt="Logo" class="logo">
-        <div class="company-name">KAIZEN GROUP</div>
-      </div>
-      <div class="bill-header-right">
-        <p><b>Bill No:</b> <span id="pBillNo"></span></p>
-        <p><b>Date:</b> <span id="pDate"></span></p>
-        <p><b>GST:</b> 27ABCDE1234F2Z5</p>
-      </div>
+<p class="note">Click below to generate bill preview</p>
+<button onclick="generateBill()">Generate Bill</button>
+
+<div class="bill-preview" id="billPreview">
+  <div class="bill-header">
+    <div class="bill-header-left">
+      <img src="logo.jpg" class="logo" />
+      <div class="company-name">KAIZEN GROUP</div>
     </div>
-    <table>
-      <tr><th>Metal KT</th><td id="pKt"></td></tr>
-      <tr><th>Gross Weight</th><td id="pGross"></td></tr>
-      <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
-      <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
-      <tr><th>Net Weight</th><td id="pNet"></td></tr>
-      <tr><th>Fine</th><td id="pFine"></td></tr>
-      <tr><th>Labour</th><td id="pLabour"></td></tr>
-    </table>
-    <div style="text-align:center; margin-top:15px;">
-      <img id="billImg" class="preview-img">
+    <div class="bill-header-right">
+      <p><b>Bill No:</b> <span id="pBillNo"></span></p>
+      <p><b>Date:</b> <span id="pDate"></span></p>
+      <p><b>GST:</b> 27ABCDE1234F2Z5</p>
     </div>
-    <p style="text-align:center; margin-top:20px;">Thank you for shopping with <b>KAIZEN GROUP</b>!</p>
-    <button class="action-btn" onclick="printBill()">Print Bill</button>
-    <button class="action-btn" onclick="downloadBillPDF()">Download PDF</button>
   </div>
 
-  <!-- Summary -->
-  <div class="summary-preview" id="summaryPreview">
-    <h3>Bill Summary</h3>
-    <table id="summaryTable">
-      <thead>
-        <tr>
-          <th>Bill No</th><th>Date</th><th>KT</th><th>Gross</th><th>CTW</th>
-          <th>DWT</th><th>Net</th><th>Fine</th><th>Labour</th><th>Action</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div style="margin-top:10px;">
-    <!---  <button class="action-btn" onclick="printSummary()">Print Summary</button>-->
-      <button class="action-btn" onclick="downloadSummaryPDF()">Download Summary PDF</button>
-      <button class="action-btn" onclick="downloadSummaryExcel()">Download Summary Excel</button>
-      <button class="action-btn" onclick="printAllBills()">🖨️ Print All Bills</button>
-      <button class="action-btn reset-btn" onclick="resetAll()">Reset All</button>
+  <table>
+    <tr><th>Metal KT</th><td id="pKt"></td></tr>
+    <tr><th>Gross Weight</th><td id="pGross"></td></tr>
+    <tr><th>Diamond CTW</th><td id="pCtw"></td></tr>
+    <tr><th>Diamond Weight</th><td id="pDwt"></td></tr>
+    <tr><th>Net Weight</th><td id="pNet"></td></tr>
+    <tr><th>Product Fine</th><td id="pFine"></td></tr>
+    <tr><th>Wastage Fine</th><td id="pWastage"></td></tr>
+    <tr><th>Fine + Wastage</th><td id="pFinePlus"></td></tr>
+  </table>
+
+  <div style="text-align:center">
+    <img id="billImg" class="preview-img" />
+  </div>
+
+  <button class="action-btn" onclick="printBill()">Print Bill</button>
+  <button class="action-btn" onclick="downloadBillPDF()">Download PDF</button>
+</div>
+
+<div class="summary-preview" id="summaryPreview">
+  <h3>Bill Summary</h3>
+
+  <div class="summary-grid">
+    <div class="left-panel">
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Bill No</th>
+            <th>Date</th>
+            <th>KT</th>
+            <th>Gross</th>
+            <th>CTW</th>
+            <th>DWT</th>
+            <th>Net</th>
+            <th>Product Fine</th>
+            <th>Wastage</th>
+            <th>Fine+W</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">TOTAL</td>
+            <td id="tGross">0.000</td>
+            <td id="tCtw">0.000</td>
+            <td id="tDwt">0.000</td>
+            <td id="tNet">0.000</td>
+            <td id="tProdFine">0.000</td>
+            <td id="tWastage">0.000</td>
+            <td id="tFinePlus">0.000</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div style="margin-top:10px;">
+        <button class="action-btn" onclick="downloadSummaryPDF()">Summary PDF</button>
+        <button class="action-btn" onclick="downloadSummaryExcel()">Summary Excel</button>
+        <button class="action-btn reset-btn" onclick="resetAll()">Reset All</button>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <h4>Fine Gold Deposit</h4>
+
+      <label>Date</label>
+      <input type="date" id="depDate" />
+
+      <label>Deposit Fine Gold</label>
+      <input type="number" id="depFine" step="0.001" placeholder="Enter fine gold" />
+
+      <button class="small-btn" onclick="addDeposit()">Add Deposit</button>
+
+      <table id="depositTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Fine</th>
+            <th>Del</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td>TOTAL</td>
+            <td id="tDepFine">0.000</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="kpi">
+        <div class="kpi-row">
+          <span>Total Fine+W (Used)</span>
+          <strong id="kTotalFinePlus">0.000</strong>
+        </div>
+        <div class="kpi-row">
+          <span>Total Deposited</span>
+          <strong id="kTotalDeposited">0.000</strong>
+        </div>
+        <div class="kpi-row">
+          <span>Deposit Balance</span>
+          <strong id="kAvailable">0.000</strong>
+        </div>
+      </div>
+
+      <button class="small-btn reset-btn" onclick="resetDeposits()" style="margin-top:10px;">Reset Deposits</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== Edit Bill Modal ===== -->
+<div class="modal-overlay" id="editOverlay">
+  <div class="modal">
+    <h3>Edit Bill</h3>
+    <div class="hint">
+      Rule: If <b>NET WT</b> is less than <b>1.000</b>, wastage is fixed <b>0.070</b> (no other formula).
+    </div>
+
+    <input type="hidden" id="editIndex" />
+
+    <label>Bill Number</label>
+    <input type="text" id="editBillNo" />
+
+    <div class="row">
+      <div>
+        <label>KT</label>
+        <select id="editKt">
+          <option value="10">10K</option>
+          <option value="14">14K</option>
+          <option value="18">18K</option>
+          <option value="22">22K</option>
+        </select>
+      </div>
+      <div>
+        <label>Date (same)</label>
+        <input type="text" id="editDate" disabled />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Gross Weight (g)</label>
+        <input type="number" id="editGross" step="0.001" />
+      </div>
+      <div>
+        <label>Diamond CTW</label>
+        <input type="number" id="editCtw" step="0.001" />
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="reset-btn" onclick="closeEdit()">Cancel</button>
+      <button onclick="updateBillFromModal()">Update</button>
     </div>
   </div>
 </div>
 
 <script>
 let bills = [];
+let deposits = [];
 let uploadedImg = null;
 
-window.onload = function(){
-  const stored = localStorage.getItem("bills");
-  if(stored){
-    bills = JSON.parse(stored);
-    updateSummaryTable();
+/* ===== FACTORS ===== */
+const fineFactor  = {10:0.425,14:0.595,18:0.760,22:0.925};
+const totalFactor = {10:0.495,14:0.665,18:0.830,22:0.995};
+
+/* ===== YOUR RULE (NET WT BASED) ===== */
+const FIXED_WASTAGE_FOR_SMALL_NET = 0.070; // mili
+const SMALL_NET_THRESHOLD = 1.000;         // net wt < 1g => fixed 0.07
+
+function toNum(v){ return Number.isFinite(v) ? v : 0; }
+function fmt3(n){ return toNum(n).toFixed(3); }
+function todayISO(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+function nowDateGB(){
+  return new Date().toLocaleDateString("en-GB");
+}
+
+/* ===== Core calculation (single source of truth) ===== */
+function calculateBillFields(ktValue, gross, ctw){
+  const dwt = ctw / 5;          // OUT
+  const net = gross - dwt;      // IN - OUT
+
+  const productFine = net * fineFactor[ktValue];
+
+  // normal formula
+  const finePlusStd = net * totalFactor[ktValue];
+  const wastageStd  = finePlusStd - productFine;
+
+  // YOUR RULE: if NET < 1 => wastage fixed 0.070
+  let wastageFine, finePlus;
+  if(net < SMALL_NET_THRESHOLD){
+    wastageFine = FIXED_WASTAGE_FOR_SMALL_NET;
+    finePlus = productFine + wastageFine; // ex: net=0.880 => fine + 0.070
+  }else{
+    wastageFine = wastageStd;
+    finePlus = finePlusStd;
   }
+
+  return { dwt, net, productFine, wastageFine, finePlus };
+}
+
+window.onload = function(){
+  const storedBills = localStorage.getItem("bills");
+  if(storedBills) bills = JSON.parse(storedBills);
+
+  const storedDeps = localStorage.getItem("fineDeposits");
+  if(storedDeps) deposits = JSON.parse(storedDeps);
+
+  document.getElementById("depDate").value = todayISO();
+
+  updateSummaryTable();
+  updateDepositTable();
+  updateKPI();
 };
 
 document.getElementById("productImg").addEventListener("change", function(e){
   const file = e.target.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = function(evt){
-      uploadedImg = evt.target.result;
-      document.getElementById("previewImg").src = uploadedImg;
-      document.getElementById("previewImg").style.display = "block";
-    };
-    reader.readAsDataURL(file);
-  }
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    uploadedImg = reader.result;
+    previewImg.src = uploadedImg;
+    previewImg.style.display = "block";
+  };
+  reader.readAsDataURL(file);
 });
 
 function generateBill(){
-  let billNo = document.getElementById("billNo").value;
-  let kt = document.getElementById("kt").value;
-  let grossWt = parseFloat(document.getElementById("grossWt").value);
-  let diamondCtw = parseFloat(document.getElementById("diamondCtw").value);
+  const billNumber = billNo.value.trim();
+  const ktValue = kt.value;
+  const gross = parseFloat(grossWt.value);
+  const ctw = parseFloat(diamondCtw.value);
 
-  if(isNaN(grossWt) || isNaN(diamondCtw) || !billNo){
-    alert("⚠️ Fill all fields correctly!");
+  if(!billNumber || isNaN(gross) || isNaN(ctw)){
+    alert("Please fill all fields properly");
     return;
   }
 
-  let purity = {10:0.495, 14:0.665, 18:0.83, 22:0.925};
-  let diamondWt = diamondCtw/5;
-  let netWt = grossWt - diamondWt;
-  let fine = netWt * purity[kt];
-  let labour = Math.max(netWt*0000,0000);
+  const calc = calculateBillFields(ktValue, gross, ctw);
 
-  let today = new Date();
-  let dateStr = today.toLocaleDateString("en-GB");
-
-  const bill = { 
-    billNo, date:dateStr, kt, gross:grossWt, ctw:diamondCtw, 
-    dwt:diamondWt, net:netWt, fine, labour, 
+  const bill = {
+    billNo: billNumber,
+    date: nowDateGB(),
+    kt: ktValue,
+    gross: gross,
+    ctw: ctw,
+    dwt: calc.dwt,
+    net: calc.net,
+    productFine: calc.productFine,
+    wastageFine: calc.wastageFine,
+    finePlus: calc.finePlus,
     img: uploadedImg || "logo.jpg"
   };
+
   bills.push(bill);
   localStorage.setItem("bills", JSON.stringify(bills));
 
-  document.getElementById("billPreview").style.display = "block";
-  document.getElementById("pBillNo").innerText = billNo;
-  document.getElementById("pDate").innerText = dateStr;
-  document.getElementById("pKt").innerText = kt + "K";
-  document.getElementById("pGross").innerText = grossWt.toFixed(3);
-  document.getElementById("pCtw").innerText = diamondCtw.toFixed(3);
-  document.getElementById("pDwt").innerText = diamondWt.toFixed(3);
-  document.getElementById("pNet").innerText = netWt.toFixed(3);
-  document.getElementById("pFine").innerText = fine.toFixed(3);
-  document.getElementById("pLabour").innerText = "Rs " + labour.toFixed(3);
-  document.getElementById("billImg").src = bill.img;
+  renderBillPreview(bill);
+  billPreview.style.display = "block";
 
   updateSummaryTable();
+  updateKPI();
+}
+
+function renderBillPreview(bill){
+  pBillNo.innerText = bill.billNo;
+  pDate.innerText = bill.date;
+  pKt.innerText = bill.kt + "K";
+  pGross.innerText = fmt3(bill.gross);
+  pCtw.innerText = fmt3(bill.ctw);
+  pDwt.innerText = fmt3(bill.dwt);
+  pNet.innerText = fmt3(bill.net);
+  pFine.innerText = fmt3(bill.productFine);
+  pWastage.innerText = fmt3(bill.wastageFine);
+  pFinePlus.innerText = fmt3(bill.finePlus);
+  billImg.src = bill.img;
 }
 
 function updateSummaryTable(){
   const tbody = document.querySelector("#summaryTable tbody");
   tbody.innerHTML = "";
-  let totalFine = 0, totalLabour = 0;
 
-  bills.forEach((b,index)=>{
-    totalFine += b.fine;
-    totalLabour += b.labour;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${b.billNo}</td>
-      <td>${b.date}</td>
-      <td>${b.kt}K</td>
-      <td>${b.gross.toFixed(3)}</td>
-      <td>${b.ctw.toFixed(3)}</td>
-      <td>${b.dwt.toFixed(3)}</td>
-      <td>${b.net.toFixed(3)}</td>
-      <td>${b.fine.toFixed(3)}</td>
-      <td>Rs ${b.labour.toFixed(3)}</td>
-      <td style="text-align:center;">
-        <span style="color:#d9534f;" title="Delete" onclick="deleteBill(${index})">&#128465;</span>
-        <span style="color:#5bc0de; margin-left:10px;" title="Print Bill" onclick="printIndividualBill(${index})">&#128438;</span>
-      </td>`;
-    tbody.appendChild(tr);
-  });
-
-  if(bills.length){
-    const trTotal = document.createElement("tr");
-    trTotal.style.fontWeight = "bold";
-    trTotal.innerHTML = `
-      <td colspan="7" style="text-align:right;">Total:</td>
-      <td>${totalFine.toFixed(3)}</td>
-      <td>Rs ${totalLabour.toFixed(3)}</td><td></td>`;
-    tbody.appendChild(trTotal);
+  if(!bills.length){
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">No bills added yet</td></tr>`;
+  }else{
+    bills.forEach((b, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${b.billNo}</td>
+        <td>${b.date}</td>
+        <td>${b.kt}K</td>
+        <td>${fmt3(b.gross)}</td>
+        <td>${fmt3(b.ctw)}</td>
+        <td>${fmt3(b.dwt)}</td>
+        <td>${fmt3(b.net)}</td>
+        <td>${fmt3(b.productFine)}</td>
+        <td>${fmt3(b.wastageFine)}</td>
+        <td>${fmt3(b.finePlus)}</td>
+        <td style="white-space:nowrap;">
+          <span title="Edit" onclick="openEdit(${index})">✏️</span>
+          <span title="Delete" style="margin-left:10px;" onclick="deleteBill(${index})">🗑️</span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
-  document.getElementById("summaryPreview").style.display = bills.length ? "block" : "none";
+  let tg=0, tc=0, td=0, tn=0, tpf=0, tw=0, tfw=0;
+  bills.forEach(b=>{
+    tg += toNum(b.gross);
+    tc += toNum(b.ctw);
+    td += toNum(b.dwt);
+    tn += toNum(b.net);
+    tpf += toNum(b.productFine);
+    tw += toNum(b.wastageFine);
+    tfw += toNum(b.finePlus);
+  });
+
+  tGross.innerText = fmt3(tg);
+  tCtw.innerText = fmt3(tc);
+  tDwt.innerText = fmt3(td);
+  tNet.innerText = fmt3(tn);
+  tProdFine.innerText = fmt3(tpf);
+  tWastage.innerText = fmt3(tw);
+  tFinePlus.innerText = fmt3(tfw);
 }
 
 function deleteBill(index){
-  if(confirm("Are you sure to delete this bill?")){
-    bills.splice(index,1);
-    localStorage.setItem("bills", JSON.stringify(bills));
-    updateSummaryTable();
-  }
+  if(!confirm("Delete this bill?")) return;
+  bills.splice(index,1);
+  localStorage.setItem("bills", JSON.stringify(bills));
+  updateSummaryTable();
+  updateKPI();
 }
 
 function resetAll(){
-  if(confirm("Are you sure to reset all bills?")){
-    bills = [];
-    localStorage.removeItem("bills");
-    updateSummaryTable();
+  if(!confirm("Reset all bills?")) return;
+  bills = [];
+  localStorage.removeItem("bills");
+  updateSummaryTable();
+  updateKPI();
+}
+
+function printBill(){ window.print(); }
+
+/* ===== Edit modal ===== */
+function openEdit(index){
+  const b = bills[index];
+  if(!b) return;
+
+  document.getElementById("editIndex").value = String(index);
+  document.getElementById("editBillNo").value = b.billNo;
+  document.getElementById("editKt").value = b.kt;
+  document.getElementById("editDate").value = b.date;
+  document.getElementById("editGross").value = fmt3(b.gross);
+  document.getElementById("editCtw").value = fmt3(b.ctw);
+
+  document.getElementById("editOverlay").style.display = "flex";
+}
+
+function closeEdit(){
+  document.getElementById("editOverlay").style.display = "none";
+}
+
+function updateBillFromModal(){
+  const idx = parseInt(document.getElementById("editIndex").value, 10);
+  if(!Number.isFinite(idx) || idx < 0 || idx >= bills.length){
+    alert("Invalid bill selection");
+    return;
   }
+
+  const billNumber = document.getElementById("editBillNo").value.trim();
+  const ktValue = document.getElementById("editKt").value;
+  const gross = parseFloat(document.getElementById("editGross").value);
+  const ctw = parseFloat(document.getElementById("editCtw").value);
+
+  if(!billNumber || isNaN(gross) || isNaN(ctw)){
+    alert("Please fill all fields properly");
+    return;
+  }
+
+  const old = bills[idx];
+  const calc = calculateBillFields(ktValue, gross, ctw);
+
+  const updated = {
+    ...old,
+    billNo: billNumber,
+    kt: ktValue,
+    gross: gross,
+    ctw: ctw,
+    dwt: calc.dwt,
+    net: calc.net,
+    productFine: calc.productFine,
+    wastageFine: calc.wastageFine,
+    finePlus: calc.finePlus
+  };
+
+  bills[idx] = updated;
+  localStorage.setItem("bills", JSON.stringify(bills));
+
+  renderBillPreview(updated);
+  billPreview.style.display = "block";
+
+  updateSummaryTable();
+  updateKPI();
+  closeEdit();
 }
 
-// Print All Bills
-function printAllBills(){
-  if(!bills.length){ alert("No bills to print!"); return; }
-
-  let html = `<html><head><title>All Bills</title>
-  <style>
-  body{font-family:'Times New Roman';padding:20px;}
-  table{width:100%;border-collapse:collapse;margin-top:10px;}
-  th,td{border:1px solid #000;padding:8px;text-align:left;}
-  .bill-header{display:flex;justify-content:space-between;align-items:center;margin-top:20px;}
-  .bill-header-left{display:flex;align-items:center;}
-  .bill-header-left img{height:60px;margin-right:10px;}
-  .preview-img{max-width:120px;margin-top:10px;border:1px solid #ccc;border-radius:6px;}
-  </style></head><body>`;
-
-  bills.forEach(b=>{
-    html += `<div class="bill-header">
-      <div class="bill-header-left">
-        <img src="logo.jpg" class="logo">
-        <div class="company-name">KAIZEN GROUP</div>
-      </div>
-      <div class="bill-header-right">
-        <p><b>Bill No:</b> ${b.billNo}</p>
-        <p><b>Date:</b> ${b.date}</p>
-        <p><b>GST:</b> 27ABCDE1234F2Z5</p>
-      </div>
-    </div>
-    <table>
-      <tr><th>Metal KT</th><td>${b.kt}K</td></tr>
-      <tr><th>Gross Weight</th><td>${b.gross.toFixed(3)}</td></tr>
-      <tr><th>Diamond CTW</th><td>${b.ctw.toFixed(3)}</td></tr>
-      <tr><th>Diamond Weight</th><td>${b.dwt.toFixed(3)}</td></tr>
-      <tr><th>Net Weight</th><td>${b.net.toFixed(3)}</td></tr>
-      <tr><th>Fine</th><td>${b.fine.toFixed(3)}</td></tr>
-      <tr><th>Labour</th><td>Rs ${b.labour.toFixed(3)}</td></tr>
-    </table>
-    <img src="${b.img}" class="preview-img"><hr>`;
-  });
-
-  html += `</body></html>`;
-  const w = window.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  w.print();
-}
-
-// Individual Bill Print
-function printBill(){
-  printIndividualBill(bills.length-1);
-}
-
-function printIndividualBill(index){
-  const bill = bills[index];
-  const w = window.open();
-  w.document.write(`<html><head><title>Print Bill</title>
-  <style>
-  body{font-family:'Times New Roman';padding:20px;}
-  table{width:100%;border-collapse:collapse;margin-top:10px;}
-  th,td{border:1px solid #000;padding:8px;text-align:left;}
-  .bill-header{display:flex;justify-content:space-between;align-items:center;}
-  .bill-header-left{display:flex;align-items:center;}
-  .bill-header-left img{height:60px;margin-right:10px;}
-  .preview-img{max-width:150px;margin-top:10px;border:1px solid #ccc;border-radius:6px;}
-  .author-sign{margin-top:30px;text-align:right;font-weight:bold;}
-  </style>
-  </head><body>
-  <div class="bill-header">
-    <div class="bill-header-left">
-      <img src="logo.jpg" class="logo">
-      <div class="company-name">KAIZEN GROUP</div>
-    </div>
-    <div class="bill-header-right">
-      <p><b>Bill No:</b> ${bill.billNo}</p>
-      <p><b>Date:</b> ${bill.date}</p>
-      <p><b>GST:</b> 27ABCDE1234F2Z5</p>
-    </div>
-  </div>
-  <table>
-    <tr><th>Metal KT</th><td>${bill.kt}K</td></tr>
-    <tr><th>Gross Weight</th><td>${bill.gross.toFixed(3)}</td></tr>
-    <tr><th>Diamond CTW</th><td>${bill.ctw.toFixed(3)}</td></tr>
-    <tr><th>Diamond Weight</th><td>${bill.dwt.toFixed(3)}</td></tr>
-    <tr><th>Net Weight</th><td>${bill.net.toFixed(3)}</td></tr>
-    <tr><th>Fine</th><td>${bill.fine.toFixed(3)}</td></tr>
-    <tr><th>Labour</th><td>Rs ${bill.labour.toFixed(3)}</td></tr>
-  </table>
-  <div style="text-align:center;">
-    <img src="${bill.img}" class="preview-img">
-  </div>
-  <p style="text-align:center;margin-top:15px;">Thank you for shopping with <b>KAIZEN GROUP</b>!</p>
-  <div class="author-sign">Authorised Sign:</div>
-  </body></html>`);
-  w.document.close();
-  w.focus();
-  w.print();
-}
-
-// PDF Download
+/* ===== PDF / Excel ===== */
 function downloadBillPDF(){
+  if(!bills.length) return;
   const { jsPDF } = window.jspdf;
-  if(!bills.length){ alert("No bills!"); return; }
-  const bill = bills[bills.length-1];
+  const bill = bills[bills.length - 1];
   const doc = new jsPDF();
-  doc.setFont("times","bold");
-  doc.setFontSize(20); doc.text("KAIZEN GROUP",20,20);
-  doc.setFontSize(14); doc.text("Jewelry Bill",20,28);
-  doc.setFont("times","normal");
-  doc.text("Bill No: "+bill.billNo,150,20);
-  doc.text("Date: "+bill.date,150,28);
-  doc.text("GST: 27ABCDE1234F2Z5",150,36);
-  let y=45;
-  doc.text("Metal KT: "+bill.kt+"K",20,y); y+=8;
-  doc.text("Gross Weight: "+bill.gross.toFixed(3),20,y); y+=8;
-  doc.text("Diamond CTW: "+bill.ctw.toFixed(3),20,y); y+=8;
-  doc.text("Diamond Weight: "+bill.dwt.toFixed(3),20,y); y+=8;
-  doc.text("Net Weight: "+bill.net.toFixed(3),20,y); y+=8;
-  doc.text("Fine: "+bill.fine.toFixed(3),20,y); y+=8;
-  doc.text("Labour Charges: Rs "+bill.labour.toFixed(3),20,y); y+=15;
-  doc.text("Thank you for shopping with KAIZEN GROUP!",105,y,null,null,"center"); y+=15;
-  doc.text("Authorised Sign:",150,y);
-  doc.save("Jewelry_Bill_"+bill.billNo+".pdf");
+
+  doc.setFontSize(18);
+  doc.text("KAIZEN GROUP - Jewelry Bill", 20, 20);
+
+  let y = 35;
+  doc.setFontSize(12);
+  doc.text("Bill No: " + bill.billNo, 20, y); y+=8;
+  doc.text("Date: " + bill.date, 20, y); y+=8;
+  doc.text("Metal: " + bill.kt + "K", 20, y); y+=8;
+  doc.text("Gross Weight: " + fmt3(bill.gross), 20, y); y+=8;
+  doc.text("Diamond CTW: " + fmt3(bill.ctw), 20, y); y+=8;
+  doc.text("Diamond Weight: " + fmt3(bill.dwt), 20, y); y+=8;
+  doc.text("Net Weight: " + fmt3(bill.net), 20, y); y+=8;
+  doc.text("Product Fine: " + fmt3(bill.productFine), 20, y); y+=8;
+  doc.text("Wastage Fine: " + fmt3(bill.wastageFine), 20, y); y+=8;
+  doc.text("Fine + Wastage: " + fmt3(bill.finePlus), 20, y);
+
+  doc.save("Jewelry_Bill_" + bill.billNo + ".pdf");
 }
 
-// Summary PDF
 function downloadSummaryPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  doc.text("KAIZEN GROUP Bill Summary",20,20);
-  const columns = ["Bill No","Date","KT","Gross","CTW","DWT","Net","Fine","Labour"];
-  const rows = bills.map(b => [ b.billNo, b.date, b.kt+"K", b.gross.toFixed(3), b.ctw.toFixed(3), b.dwt.toFixed(3), b.net.toFixed(3), b.fine.toFixed(3), "Rs "+b.labour.toFixed(3) ]);
-  doc.autoTable({ head:[columns], body:rows, startY:30 });
-  const totalFine = bills.reduce((a,b)=>a+b.fine,0);
-  const totalLabour = bills.reduce((a,b)=>a+b.labour,0);
-  doc.autoTable({ startY: doc.lastAutoTable.finalY+2, head:[["Total","","","","","","",totalFine.toFixed(3),"Rs "+totalLabour.toFixed(3)]], theme:"plain" });
+
+  doc.text("KAIZEN GROUP - Bill Summary", 20, 20);
+
+  const rows = bills.map(b => [
+    b.billNo,
+    b.date,
+    b.kt + "K",
+    fmt3(b.gross),
+    fmt3(b.ctw),
+    fmt3(b.dwt),
+    fmt3(b.net),
+    fmt3(b.productFine),
+    fmt3(b.wastageFine),
+    fmt3(b.finePlus)
+  ]);
+
+  doc.autoTable({
+    head: [["Bill","Date","KT","Gross","CTW","DWT","Net","Prod Fine","Wastage","Fine+W"]],
+    body: rows,
+    startY: 30
+  });
+
   doc.save("Bill_Summary.pdf");
 }
 
-// Summary Excel
 function downloadSummaryExcel(){
   const wb = XLSX.utils.book_new();
-  const data = bills.map(b => ({ "Bill No":b.billNo,"Date":b.date,"KT":b.kt+"K","Gross":b.gross.toFixed(3),"CTW":b.ctw.toFixed(3),"DWT":b.dwt.toFixed(3),"Net":b.net.toFixed(3),"Fine":b.fine.toFixed(3),"Labour":b.labour.toFixed(3) }));
-  const totalFine = bills.reduce((a,b)=>a+b.fine,0);
-  const totalLabour = bills.reduce((a,b)=>a+b.labour,0);
-  data.push({"Bill No":"","Date":"","KT":"","Gross":"","CTW":"","DWT":"","Net":"Total","Fine":totalFine.toFixed(3),"Labour":totalLabour.toFixed(3)});
-  const ws = XLSX.utils.json_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb,ws,"Summary");
-  XLSX.writeFile(wb,"Bill_Summary.xlsx");
+
+  const excelRows = bills.map(b => ({
+    "Bill No": b.billNo,
+    "Date": b.date,
+    "KT": b.kt + "K",
+    "Gross": fmt3(b.gross),
+    "CTW": fmt3(b.ctw),
+    "DWT": fmt3(b.dwt),
+    "Net": fmt3(b.net),
+    "Product Fine": fmt3(b.productFine),
+    "Wastage": fmt3(b.wastageFine),
+    "Fine+W": fmt3(b.finePlus)
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(excelRows);
+  XLSX.utils.book_append_sheet(wb, ws, "Summary");
+  XLSX.writeFile(wb, "Bill_Summary.xlsx");
+}
+
+/* ===== Deposits ===== */
+function addDeposit(){
+  const date = document.getElementById("depDate").value;
+  const fine = parseFloat(document.getElementById("depFine").value);
+
+  if(!date || isNaN(fine)){
+    alert("Please enter deposit date and fine gold");
+    return;
+  }
+
+  deposits.push({ date: date, fine: fine });
+  localStorage.setItem("fineDeposits", JSON.stringify(deposits));
+
+  document.getElementById("depFine").value = "";
+  updateDepositTable();
+  updateKPI();
+}
+
+function updateDepositTable(){
+  const tbody = document.querySelector("#depositTable tbody");
+  tbody.innerHTML = "";
+
+  if(!deposits.length){
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No deposits yet</td></tr>`;
+  }else{
+    deposits.forEach((d, idx)=>{
+      const tr = document.createElement("tr");
+      const showDate = (d.date || "").split("-").reverse().join("-");
+      tr.innerHTML = `
+        <td>${showDate}</td>
+        <td>${fmt3(d.fine)}</td>
+        <td><span onclick="deleteDeposit(${idx})">🗑️</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  let t=0;
+  deposits.forEach(d=> t += toNum(d.fine));
+  tDepFine.innerText = fmt3(t);
+}
+
+function deleteDeposit(index){
+  if(!confirm("Delete this deposit?")) return;
+  deposits.splice(index,1);
+  localStorage.setItem("fineDeposits", JSON.stringify(deposits));
+  updateDepositTable();
+  updateKPI();
+}
+
+function resetDeposits(){
+  if(!confirm("Reset all deposits?")) return;
+  deposits = [];
+  localStorage.removeItem("fineDeposits");
+  updateDepositTable();
+  updateKPI();
+}
+
+/* ===== KPI =====
+Remaining Deposit = Total Deposited - Total Fine+W (Used)
+*/
+function updateKPI(){
+  let totalFinePlus = 0;
+  bills.forEach(b=> totalFinePlus += toNum(b.finePlus));
+
+  let totalDeposited = 0;
+  deposits.forEach(d=> totalDeposited += toNum(d.fine));
+
+  const available = totalDeposited - totalFinePlus;
+
+  kTotalFinePlus.innerText = fmt3(totalFinePlus);
+  kTotalDeposited.innerText = fmt3(totalDeposited);
+  kAvailable.innerText = fmt3(available);
 }
 </script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
